@@ -5,29 +5,34 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public float requiredDistance = 2f;
-    public Transform point1;
-    public Transform point2;
-    public Transform Player1;
-    public Transform Player2;
+    public int playerCount = 4; // Số lượng Player muốn tạo
+    public List<Transform> points;
+    public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     Queue<Transform> QueuePlayer = new Queue<Transform>();
 
     private void Start()
     {
+        players = new List<Transform>();
+
         PlayerManager.Instance.LoadPlayer();
         PlayerAppear.Instance.LoadCheckPoint();
-        PlayerAppear.Instance.GetTwoPoints(requiredDistance, out point1, out point2);
-        Player1 = SpawnPlayer("Player", point1);
-        turnOffComponent(Player1);
-        AddPlayerToQueue(Player1);
-        Player2 = SpawnPlayer("Player", point2);
-        turnOffComponent(Player2);
-        AddPlayerToQueue(Player2);
+        PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
+
+        // Tạo và thêm các Player vào hàng đợi
+        for (int i = 0; i < points.Count; i++)
+        {
+            Transform player = SpawnPlayer("Player", points[i]);
+            turnOffComponent(player);
+            AddPlayerToQueue(player);
+            players.Add(player);
+        }
 
         // Đặt Player đầu tiên trong hàng đợi làm ActivePlayer ban đầu
         if (QueuePlayer.Count > 0)
         {
             ActivePlayer = QueuePlayer.Peek();
+            turnOnComponent(ActivePlayer);
         }
 
         // Lặp lại việc cập nhật ActivePlayer sau mỗi 2 giây

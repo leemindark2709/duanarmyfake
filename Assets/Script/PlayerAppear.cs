@@ -8,8 +8,6 @@ public class PlayerAppear : MonoBehaviour
 
     public Transform SpawnPlayerCP;
     public List<Transform> CheckPoints;
-    public Transform point1;
-    public Transform point2;
     public float requiredDistance = 2f;
 
     private void Awake()
@@ -17,6 +15,7 @@ public class PlayerAppear : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
+
     public virtual void LoadCheckPoint()
     {
         SpawnPlayerCP = GameObject.Find("SpawnPlayerCP").transform;
@@ -27,35 +26,58 @@ public class PlayerAppear : MonoBehaviour
         }
     }
 
-    public virtual void GetTwoPoints(float requiredDistance, out Transform point1, out Transform point2)
+    public virtual void GetPoints(int pointCount, float requiredDistance, out List<Transform> points)
     {
-        point1 = null;
-        point2 = null;
+        points = new List<Transform>();
 
-        if (this.CheckPoints.Count < 2)
+        if (this.CheckPoints.Count < pointCount)
         {
             Debug.LogError("Not enough checkpoints in the list");
             return;
         }
 
-        point1 = CheckPoints[Random.Range(0, CheckPoints.Count)];
+        List<Transform> remainingCheckPoints = new List<Transform>(CheckPoints);
+        Transform currentPoint = remainingCheckPoints[Random.Range(0, remainingCheckPoints.Count)];
+        points.Add(currentPoint);
+        remainingCheckPoints.Remove(currentPoint);
 
-        List<Transform> validPoints = new List<Transform>();
-        foreach (Transform checkpoint in CheckPoints)
+        while (points.Count < pointCount)
         {
-            if (checkpoint != point1 && Vector3.Distance(point1.position, checkpoint.position) >= requiredDistance)
+            List<Transform> validPoints = new List<Transform>();
+            foreach (Transform checkpoint in remainingCheckPoints)
             {
-                validPoints.Add(checkpoint);
+                bool isValid = true;
+                foreach (Transform point in points)
+                {
+                    if (Vector3.Distance(point.position, checkpoint.position) < requiredDistance)
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+
+                if (isValid)
+                {
+                    validPoints.Add(checkpoint);
+                }
+            }
+
+            if (validPoints.Count > 0)
+            {
+                currentPoint = validPoints[Random.Range(0, validPoints.Count)];
+                points.Add(currentPoint);
+                remainingCheckPoints.Remove(currentPoint);
+            }
+            else
+            {
+                Debug.LogError("No valid checkpoint found with the required distance");
+                break;
             }
         }
 
-        if (validPoints.Count > 0)
+        if (points.Count < pointCount)
         {
-            point2 = validPoints[Random.Range(0, validPoints.Count)];
-        }
-        else
-        {
-            Debug.LogError("No valid second checkpoint found with the required distance");
+            Debug.LogError("Could not find enough valid checkpoints with the required distance");
         }
     }
 }
