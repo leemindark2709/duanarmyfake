@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class CanonRotation : MonoBehaviour
 {
+    public static CanonRotation Instance;
     public float rotationSpeed = 100f;
     public bool facingRight = true;
     public float currentRotationAngle;
@@ -13,6 +15,10 @@ public class CanonRotation : MonoBehaviour
     private PlayerMoving playerMoving;
     public float initialRotationAngle;
     public float difference;
+    private void Awake()
+    {
+       Instance = this; 
+    }
     void Start()
     {
         imageRectTransform = GetComponent<Transform>();
@@ -63,11 +69,16 @@ public class CanonRotation : MonoBehaviour
         }
     }
 
-    float AngleDifference(float initialAngle, float currentAngle)
+   public  float AngleDifference(float initialAngle, float currentAngle)
     {
         difference = currentAngle - initialAngle;
         if (difference > 180) difference -= 360;
 
         return difference;
     }
+    public float rotation()
+    {
+        return currentRotationAngle;
+    }
+
 }

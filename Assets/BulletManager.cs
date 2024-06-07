@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,12 +25,19 @@ public class BulletManager : MonoBehaviour
         }
     }
 
-    public virtual Transform Spawn(string bulletName, Vector3 spawnPosition)
+    public virtual Transform SpawnBullet(string bulletName, Vector3 spawnPosition, Transform player)
     {
         Transform bulletPrefab = this.GetBulletByName(bulletName);
         Transform newBullet = Instantiate(bulletPrefab);
 
         newBullet.position = spawnPosition;
+
+        // Gán thông tin player cho viên đạn
+        BulletFly bulletFly = newBullet.GetComponent<BulletFly>();
+        if (bulletFly != null)
+        {
+            bulletFly.SetPlayer(player);
+        }
 
         return newBullet;
     }

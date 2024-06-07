@@ -3,14 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
-{
+{   public static GameManager instance; 
     public float requiredDistance = 2f;
-    public int playerCount = 4; // Số lượng Player muốn tạo
+    public  int playerCount = 2; // Số lượng Player muốn tạo
     public List<Transform> points;
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     Queue<Transform> QueuePlayer = new Queue<Transform>();
 
+    private void Awake()
+    {
+        instance = this;
+    }
+    protected Transform ActPlayer()
+    {
+        return this.ActivePlayer;
+    }
     private void Start()
     {
         players = new List<Transform>();
@@ -20,7 +28,7 @@ public class GameManager : MonoBehaviour
         PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
 
         // Tạo và thêm các Player vào hàng đợi
-        for (int i = 0; i < points.Count; i++)
+        for (int i = 0; i < playerCount; i++)
         {
             Transform player = SpawnPlayer("Player", points[i]);
             turnOffComponent(player);
@@ -36,7 +44,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Lặp lại việc cập nhật ActivePlayer sau mỗi 2 giây
-        InvokeRepeating("SwitchActivePlayer", 0f, 2f);
+        InvokeRepeating("SwitchActivePlayer", 0f, 10f);
     }
 
     void Update()
@@ -85,6 +93,7 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<PlayerMoving>().enabled = false;
         Player.GetComponent<Animator>().enabled = false;
         Player.GetComponentInChildren<CanonRotation>().enabled = false;
+        Player.GetComponentInChildren<PlayerAttack>().enabled = false;
     }
 
     // Hàm để bật các component của một player
@@ -93,5 +102,6 @@ public class GameManager : MonoBehaviour
         Player.GetComponent<PlayerMoving>().enabled = true;
         Player.GetComponent<Animator>().enabled = true;
         Player.GetComponentInChildren<CanonRotation>().enabled = true;
+        Player.GetComponentInChildren<PlayerAttack>().enabled = true;
     }
 }

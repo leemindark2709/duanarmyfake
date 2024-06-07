@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class PlayerMoving : MonoBehaviour
 {
+    public static PlayerMoving Instance;
     public Animator animator;
     public float moveSpeed = 5f;
     public bool facingRight = true;
     public float distance = 0f;
     private Vector3 lastPosition;
 
+    private void Awake()
+    {
+        Instance = this;
+    }
     private void Start()
     {
         distance = 0;
