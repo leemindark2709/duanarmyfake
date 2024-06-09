@@ -3,6 +3,7 @@
 public class PlayerAttack : MonoBehaviour
 {
     private bool isHoldingSpace = false;
+    public string bulletname;
 
     void Start()
     {
@@ -31,5 +32,9 @@ public class PlayerAttack : MonoBehaviour
     {
         Vector3 spawnPosition = transform.position;
         BulletManager.instance.SpawnBullet("PlayerBullet", spawnPosition, transform.parent.parent);
+        GameManager.instance.GetComponent<GameManager>().turnOffComponent(transform.parent.parent);
+
+        // Đặt lại thời gian chuyển lượt thành 3 giây
+        GameManager.instance.OnBulletSpawned();
     }
 }

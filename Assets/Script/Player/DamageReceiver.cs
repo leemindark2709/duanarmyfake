@@ -1,10 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class DamageReceiver : MonoBehaviour
 {
+   
     public float hp = 0;
     public float maxHp = 10;
 
+    private void Start()
+    {
+    
+    }
     private void OnEnable()
     {
         this.ResetHP();
@@ -18,6 +23,7 @@ public class DamageReceiver : MonoBehaviour
     public virtual void Damaged(float damage)
     {
         this.hp -= damage;
+        PlayerHP.instance.UpdateHP(hp, maxHp);
         if (this.hp <= 0) this.hp = 0;
 
         this.Dying();
@@ -38,8 +44,9 @@ public class DamageReceiver : MonoBehaviour
 
     protected virtual void Despawn()
     {
+        // Xóa player khỏi danh sách và hàng đợi trong GameManager
         GameManager.instance.RemovePlayer(transform);
+
         Destroy(transform.gameObject);
-       
     }
 }

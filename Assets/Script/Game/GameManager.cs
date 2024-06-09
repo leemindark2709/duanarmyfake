@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     private Queue<Transform> queuePlayer = new Queue<Transform>();
+    public List<Transform> teamEven = new List<Transform>();
+    public List<Transform> teamOdd = new List<Transform>();
+    private Coroutine switchCoroutine;
+    private float defaultSwitchDelay = 10f;
+    private float switchDelay = 10f;
 
     private void Awake()
     {
@@ -34,6 +39,16 @@ public class GameManager : MonoBehaviour
                 turnOffComponent(player);
                 AddPlayerToQueue(player);
                 players.Add(player);
+
+                // Thêm player vào team chẵn hoặc lẻ
+                if (i % 2 == 0)
+                {
+                    teamEven.Add(player);
+                }
+                else
+                {
+                    teamOdd.Add(player);
+                }
             }
         }
 
@@ -44,8 +59,8 @@ public class GameManager : MonoBehaviour
             turnOnComponent(ActivePlayer);
         }
 
-        // Lặp lại việc cập nhật ActivePlayer sau mỗi 10 giây
-        InvokeRepeating("SwitchActivePlayer", 0f, 10f);
+        // Bắt đầu chu kỳ chuyển lượt
+        switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
     }
 
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
@@ -69,6 +84,10 @@ public class GameManager : MonoBehaviour
 
         // Bật component của player mới
         turnOnComponent(ActivePlayer);
+
+        // Đặt lại thời gian chuyển lượt về giá trị mặc định
+        switchDelay = defaultSwitchDelay;
+        ResetSwitchCycle();
     }
 
     // Hàm để tạo ra một player mới
@@ -84,7 +103,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Hàm để tắt các component của một player
-    protected void turnOffComponent(Transform player)
+    public void turnOffComponent(Transform player)
     {
         if (player == null) return;
 
@@ -102,7 +121,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Hàm để bật các component của một player
-    protected void turnOnComponent(Transform player)
+    public void turnOnComponent(Transform player)
     {
         if (player == null) return;
 
@@ -125,7 +144,7 @@ public class GameManager : MonoBehaviour
         // Xóa player khỏi danh sách
         players.Remove(player);
 
-        // Xóa player khỏi hàng đợi
+        // Xóa player khỏi hàng đợi chính
         Queue<Transform> newQueue = new Queue<Transform>();
         while (queuePlayer.Count > 0)
         {
@@ -136,6 +155,16 @@ public class GameManager : MonoBehaviour
             }
         }
         queuePlayer = newQueue;
+
+        // Xóa player khỏi team chẵn hoặc lẻ
+        if (teamEven.Contains(player))
+        {
+            teamEven.Remove(player);
+        }
+        else if (teamOdd.Contains(player))
+        {
+            teamOdd.Remove(player);
+        }
 
         // Kiểm tra nếu ActivePlayer bị tiêu diệt, chuyển sang player mới
         if (ActivePlayer == player)
@@ -150,5 +179,63 @@ public class GameManager : MonoBehaviour
                 ActivePlayer = null;
             }
         }
+    }
+
+    // Hàm để kiểm tra player thuộc team nào
+    public string GetPlayerTeam(Transform player)
+    {
+        if (teamEven.Contains(player))
+        {
+            return "Team Chẵn";
+        }
+        else if (teamOdd.Contains(player))
+        {
+            return "Team Lẻ";
+        }
+        else
+        {
+            return "Không thuộc team nào";
+        }
+    }
+
+    // Hàm để kiểm tra xem có hàng đợi nào rỗng không
+    public bool IsAnyQueueEmpty()
+    {
+        return teamEven.Count == 0 || teamOdd.Count == 0;
+    }
+
+    // Coroutine để chuyển lượt theo chu kỳ
+    private IEnumerator SwitchActivePlayerCycle()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(switchDelay);
+            SwitchActivePlayer();
+        }
+    }
+
+    // Hàm để đặt lại chu kỳ chuyển lượt
+    public void ResetSwitchCycle()
+    {
+        if (switchCoroutine != null)
+        {
+            StopCoroutine(switchCoroutine);
+        }
+        switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+    }
+
+    // Hàm để chuyển lượt sau một khoảng thời gian ngắn
+    public IEnumerator SwitchActivePlayerAfterSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        SwitchActivePlayer();
+    }
+
+    // Hàm để xử lý sự kiện SpawnBullet
+    public void OnBulletSpawned()
+    {
+        // Đặt thời gian chuyển lượt thành 3 giây và reset chu kỳ
+        switchDelay = 0f;
+        ResetSwitchCycle();
     }
 }
