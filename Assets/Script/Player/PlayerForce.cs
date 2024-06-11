@@ -26,7 +26,11 @@ public class PlayerForce : MonoBehaviour
 
     void Update()
     {
-        checkSpace();
+        if (GameManager.instance.ActivePlayer.GetComponent<DamageReceiver>().playertable == transform.parent.parent.parent)
+        {
+            checkSpace();
+        }
+        
 
     }
 
@@ -64,7 +68,7 @@ public class PlayerForce : MonoBehaviour
             // Lưu giá trị fill amount hiện tại trước khi reset
             lastFillAmount = fillableImage.fillAmount;
             // Đặt lại fill amount về 0 khi nhả phím Space
-            fillableImage.fillAmount = 0f;
+            fillableImage.fillAmount = 0f; 
         }
     }
 }

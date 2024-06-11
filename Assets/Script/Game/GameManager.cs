@@ -40,7 +40,9 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             Transform player = SpawnPlayer("Player", points[i]);
+            player.gameObject.SetActive(true);
             Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+            playerTable.gameObject.SetActive(true);
             player.GetComponent<DamageReceiver>().playertable = playerTable;
  
             if (player != null)
@@ -141,7 +143,7 @@ public class GameManager : MonoBehaviour
         //var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
         //if (playerAttack != null) 
         //{ playerForce.enabled = false;
-            
+
         //}
 
 

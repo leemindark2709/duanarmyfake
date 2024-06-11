@@ -57,7 +57,6 @@ public class DamageReceiver : MonoBehaviour
     {
         // Xóa player khỏi danh sách và hàng đợi trong GameManager
         GameManager.instance.RemovePlayer(transform);
-
         Destroy(transform.gameObject);
     }
 }

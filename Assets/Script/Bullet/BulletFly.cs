@@ -12,7 +12,7 @@ public class BulletFly : MonoBehaviour
     public void SetPlayer(Transform player)
     {
         this.player = player;
-        force = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().GetLastFillAmount() * 10;    
+        force = this.player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().GetLastFillAmount() * 100;    
         // Lấy góc quay từ component CanonRotation của player
         angle = player.GetComponentInChildren<CanonRotation>().rotation();
 

@@ -22,6 +22,7 @@ public class PlayerTableManager : MonoBehaviour
 
     private void Start()
     {
+        HideAll();
         LoadPlayer();
     }
 
@@ -86,5 +87,12 @@ public class PlayerTableManager : MonoBehaviour
 
         Transform firstPlayer = playerQueue.Dequeue(); // Remove the first player from the queue
         playerQueue.Enqueue(firstPlayer); // Add the first player to the end of the queue
+    }
+    protected virtual void HideAll()
+    {
+        foreach (Transform bullet in this.playerPrefabs)
+        {
+            bullet.gameObject.SetActive(false);
+        }
     }
 }
