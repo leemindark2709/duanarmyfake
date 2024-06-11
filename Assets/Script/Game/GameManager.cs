@@ -8,9 +8,13 @@ public class GameManager : MonoBehaviour
     public float requiredDistance = 2f;
     public int playerCount = 2; // Số lượng Player muốn tạo
     public List<Transform> points;
+    public List<Transform> pointsTable;
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
-    private Queue<Transform> queuePlayer = new Queue<Transform>();
+
+    private Queue<Transform> queuePlayer = new Queue<Transform>(); 
+    private Queue<Transform> queueTable = new Queue<Transform>();
+
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
     private Coroutine switchCoroutine;
@@ -25,15 +29,20 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         players = new List<Transform>();
-
+       
         PlayerManager.Instance.LoadPlayer();
         PlayerAppear.Instance.LoadCheckPoint();
         PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
-
-        // Tạo và thêm các Player vào hàng đợi
+        PlayerTableManager.Instance.LoadPlayer();
+        PlayerTableAppear.Instance.LoadCheckPoint();
+        PlayerTableAppear.Instance.GetPoints(playerCount, requiredDistance, out pointsTable);
+        //Tạo và thêm các Player vào hàng đợi
         for (int i = 0; i < playerCount; i++)
         {
             Transform player = SpawnPlayer("Player", points[i]);
+            Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+            player.GetComponent<DamageReceiver>().playertable = playerTable;
+ 
             if (player != null)
             {
                 turnOffComponent(player);
@@ -94,7 +103,17 @@ public class GameManager : MonoBehaviour
     protected virtual Transform SpawnPlayer(string name, Transform point)
     {
         return PlayerManager.Instance.Spawn(name, point.position);
+
+    } 
+    protected virtual Transform SpawnPlayerTable(string name, Transform point)
+    {
+        return PlayerTableManager.Instance.Spawn(name, point.position);
+
     }
+    //protected virtual Transform SpawnPlayerTable(string name, Transform point)
+    //{
+    //    return PlayerTableManager.Instance.Spawn(name, point.position);
+    //}
 
     // Hàm để thêm player vào hàng đợi
     protected void AddPlayerToQueue(Transform player)
@@ -118,6 +137,10 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
+        
+        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerHP>().enabled = false; 
+        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerForce>().enabled = false;
+        
     }
 
     // Hàm để bật các component của một player
@@ -136,6 +159,8 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = true;
+        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerHP>().enabled = true;
+        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerForce>().enabled = true;
     }
 
     // Hàm để xóa player khỏi hàng đợi và danh sách

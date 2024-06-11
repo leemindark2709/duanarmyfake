@@ -1,10 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerManager : MonoBehaviour
+public class PlayerTableManager : MonoBehaviour
 {
-    public static PlayerManager Instance { get; private set; }
+    public static PlayerTableManager Instance { get; private set; }
     public List<Transform> playerPrefabs; // List of player prefabs
     private Queue<Transform> playerQueue = new Queue<Transform>(); // Queue of spawned players
 
@@ -22,7 +22,6 @@ public class PlayerManager : MonoBehaviour
 
     private void Start()
     {
-      
         LoadPlayer();
     }
 
@@ -76,13 +75,7 @@ public class PlayerManager : MonoBehaviour
 
         return playerQueue.Peek(); // Return the first player in the queue without removing it
     }
-    protected virtual void HideAll()
-    {
-        foreach(Transform player in this.transform)
-        {
-            player.gameObject.SetActive(false);
-        }
-    }
+
     public void RotateFirstPlayerToEndOfQueue()
     {
         if (playerQueue.Count == 0)

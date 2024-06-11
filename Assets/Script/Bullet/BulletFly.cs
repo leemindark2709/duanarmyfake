@@ -2,16 +2,17 @@
 
 public class BulletFly : MonoBehaviour
 {
+    
     public float force = 10f;  // Lực được truyền vào
     public float angle = 10;   // Góc ném ban đầu
     public bool isFacingRight = false; // Hướng mặc định
     private Rigidbody2D rb;
-    private Transform player;
+    public Transform player;
 
     public void SetPlayer(Transform player)
     {
         this.player = player;
-
+        force = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("Force").GetComponent<PlayerForce>().GetLastFillAmount() * 10;
         // Lấy góc quay từ component CanonRotation của player
         angle = player.GetComponentInChildren<CanonRotation>().rotation();
 
@@ -20,7 +21,8 @@ public class BulletFly : MonoBehaviour
     }
 
     protected void Start()
-    {
+       {
+        
         rb = GetComponent<Rigidbody2D>();
 
         // Chuyển đổi góc từ độ sang radian

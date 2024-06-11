@@ -1,31 +1,37 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerAppear : MonoBehaviour
+public class PlayerTableAppear : MonoBehaviour
 {
-    public static PlayerAppear Instance;
-    public string SpawnPlayerCPName = "SpawnPlayerCP";
-    public Transform SpawnPlayerCP;
-    public List<Transform> CheckPoints;
-    public float requiredDistance = 2f;
+    public static new PlayerTableAppear Instance { get; private set; }
+    public string SpawnPlayerTableCPName = "SpawnPlayerTableCP";
+    public Transform SpawnPlayerTableCP;
+    public new List<Transform> CheckPoints; // Use 'new' to hide the CheckPoints from the base class
+    public float requiredDistance = 2f; // Rename requiredDistance to avoid conflict
 
     private void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
-    public virtual void LoadCheckPoint() 
+    public virtual void LoadCheckPoint()
     {
-        SpawnPlayerCP = GameObject.Find(SpawnPlayerCPName).transform;
+        SpawnPlayerTableCP = GameObject.Find(SpawnPlayerTableCPName).transform;
         CheckPoints = new List<Transform>();
-        foreach (Transform checkpoint in SpawnPlayerCP)
+        foreach (Transform checkpoint in SpawnPlayerTableCP)
         {
             CheckPoints.Add(checkpoint);
         }
     }
-
     public virtual void GetPoints(int pointCount, float requiredDistance, out List<Transform> points)
     {
         points = new List<Transform>();

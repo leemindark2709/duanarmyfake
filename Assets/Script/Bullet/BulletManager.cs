@@ -34,6 +34,7 @@ public class BulletManager : MonoBehaviour
 
         // Gán thông tin player cho viên đạn
         BulletFly bulletFly = newBullet.GetComponent<BulletFly>();
+
         if (bulletFly != null)
         {
             bulletFly.SetPlayer(player);
