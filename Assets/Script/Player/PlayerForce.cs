@@ -5,7 +5,7 @@ public class PlayerForce : MonoBehaviour
 {
     public static PlayerForce instance; 
     public Image fillableImage; // Tham chiếu đến Image component
-    public float fillSpeed = 0.1f; // Tốc độ lấp đầy
+    public float fillSpeed = 10f; // Tốc độ lấp đầy
     private float lastFillAmount = 0f; // Giá trị fill amount cuối cùng trước khi reset
     private void Awake()
     {
@@ -26,23 +26,8 @@ public class PlayerForce : MonoBehaviour
 
     void Update()
     {
-        // Kiểm tra nếu phím Space được giữ
-        if (Input.GetKey(KeyCode.Space))
-        {
-            // Tăng fill amount theo thời gian cho đến khi đạt 1
-            fillableImage.fillAmount += Time.deltaTime * fillSpeed;
-            if (fillableImage.fillAmount > 1f)
-            {
-                fillableImage.fillAmount = 1f;
-            }
-        }
-        else if (Input.GetKeyUp(KeyCode.Space))
-        {
-            // Lưu giá trị fill amount hiện tại trước khi reset
-            lastFillAmount = fillableImage.fillAmount;
-            // Đặt lại fill amount về 0 khi nhả phím Space
-            fillableImage.fillAmount = 0f;
-        }
+        checkSpace();
+
     }
 
     // Phương thức để đặt trực tiếp fill amount
@@ -61,5 +46,25 @@ public class PlayerForce : MonoBehaviour
     public float GetLastFillAmount()
     {
         return lastFillAmount;
+    }
+    public void checkSpace()
+    {
+        // Kiểm tra nếu phím Space được giữ
+        if (Input.GetKey(KeyCode.Space))
+        {
+            // Tăng fill amount theo thời gian cho đến khi đạt 1
+            fillableImage.fillAmount += Time.deltaTime * fillSpeed;
+            if (fillableImage.fillAmount > 1f)
+            {
+                fillableImage.fillAmount = 1f;
+            }
+        }
+        else if (Input.GetKeyUp(KeyCode.Space))
+        {
+            // Lưu giá trị fill amount hiện tại trước khi reset
+            lastFillAmount = fillableImage.fillAmount;
+            // Đặt lại fill amount về 0 khi nhả phím Space
+            fillableImage.fillAmount = 0f;
+        }
     }
 }

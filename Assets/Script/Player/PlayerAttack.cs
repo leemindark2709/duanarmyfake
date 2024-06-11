@@ -30,10 +30,11 @@ public class PlayerAttack : MonoBehaviour
 
     void SpawnBullet()
     {
+        
         Vector3 spawnPosition = transform.position;
-        BulletManager.instance.SpawnBullet("PlayerBullet", spawnPosition, transform.parent.parent);
+        Transform newBullet= BulletManager.instance.SpawnBullet("PlayerBullet", spawnPosition, transform.parent.parent); 
         GameManager.instance.GetComponent<GameManager>().turnOffComponent(transform.parent.parent);
-
+        newBullet.gameObject.SetActive(true);
         // Đặt lại thời gian chuyển lượt thành 3 giây
         GameManager.instance.OnBulletSpawned();
     }

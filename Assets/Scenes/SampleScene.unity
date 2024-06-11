@@ -472,7 +472,7 @@ MonoBehaviour:
   force: 10
   angle: 0
   isFacingRight: 0
-  player: {fileID: 0}
+  player: {fileID: 21589686}
 --- !u!114 &123423213
 MonoBehaviour:
   m_ObjectHideFlags: 0

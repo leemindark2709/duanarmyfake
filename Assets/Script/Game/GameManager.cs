@@ -137,10 +137,14 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
-        
-        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerHP>().enabled = false; 
-        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerForce>().enabled = false;
-        
+
+        //var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
+        //if (playerAttack != null) 
+        //{ playerForce.enabled = false;
+            
+        //}
+
+
     }
 
     // Hàm để bật các component của một player
@@ -161,6 +165,8 @@ public class GameManager : MonoBehaviour
         if (playerAttack != null) playerAttack.enabled = true;
         //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerHP>().enabled = true;
         //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerForce>().enabled = true;
+        var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
+        if (playerAttack != null) playerForce.enabled = true;
     }
 
     // Hàm để xóa player khỏi hàng đợi và danh sách

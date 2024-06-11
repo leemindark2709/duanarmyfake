@@ -10,6 +10,7 @@ public class BulletManager : MonoBehaviour
     private void Start()
     {
         this.LoadBullets();
+        this.HideAll();
     }
 
     private void Awake()
@@ -24,7 +25,12 @@ public class BulletManager : MonoBehaviour
             this.bullets.Add(bullet);
         }
     }
-
+    protected virtual void HideAll()
+    {
+        foreach(Transform bullet in this.bullets) {
+        bullet.gameObject.SetActive(false);
+        }
+    }
     public virtual Transform SpawnBullet(string bulletName, Vector3 spawnPosition, Transform player)
     {
         Transform bulletPrefab = this.GetBulletByName(bulletName);
