@@ -37,7 +37,7 @@ public class BulletManager : MonoBehaviour
         Transform newBullet = Instantiate(bulletPrefab);
 
         newBullet.position = spawnPosition;
-
+       
         // Gán thông tin player cho viên đạn
         BulletFly bulletFly = newBullet.GetComponent<BulletFly>();
 
