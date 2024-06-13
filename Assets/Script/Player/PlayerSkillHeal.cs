@@ -22,9 +22,9 @@ public class PlayerSkillHeal : MonoBehaviour
     void HealPlayer(Transform player)
     {
         float maxHp = player.GetComponent<DamageReceiver>().maxHp;
-        player.GetComponent<DamageReceiver>().hp = player.GetComponent<DamageReceiver>().hp + 1;
+        player.GetComponent<DamageReceiver>().Hp = player.GetComponent<DamageReceiver>().Hp + 1;
         
-        float hp = player.GetComponent<DamageReceiver>().hp;
+        float hp = player.GetComponent<DamageReceiver>().Hp;
         if (hp > maxHp)
         {
             hp = maxHp;

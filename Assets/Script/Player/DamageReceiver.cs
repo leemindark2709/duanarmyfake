@@ -7,16 +7,17 @@ public class DamageReceiver : MonoBehaviour
     public static DamageReceiver Instance { get; private set; }
     public Transform playertable;
     public PlayerHP playerHP;
-    public float hp = 0;
+    public float Hp = 0;
     public float maxHp = 10;
     private void Awake()
     {
             Instance = this;
     }
     private void Start()
-    {
+    {   
         //playerHP = GetComponent<PlayerHP>();    
         playerHP = playertable.Find("CanvasUI").Find("BloodBar").Find("BloodBar").GetComponent<PlayerHP>();
+
 
 
     }
@@ -27,15 +28,15 @@ public class DamageReceiver : MonoBehaviour
 
     protected virtual void ResetHP()
     {
-        this.hp = this.maxHp;
+        this.Hp = this.maxHp;
     }
 
     public virtual void Damaged(float damage)
     {
-        this.hp -= damage;
+        this.Hp -= damage;
         //playerHP.UpdateHP(hp, maxHp);
-       playerHP.UpdateHP(hp, maxHp); 
-        if (this.hp <= 0) this.hp = 0;
+       playerHP.UpdateHP(Hp, maxHp); 
+        if (this.Hp <= 0) this.Hp = 0;
 
         this.Dying();
     }
@@ -50,7 +51,7 @@ public class DamageReceiver : MonoBehaviour
 
     protected virtual bool IsAlive()
     {
-        return this.hp > 0;
+        return this.Hp > 0;
     }
 
     protected virtual void Despawn()
@@ -58,5 +59,9 @@ public class DamageReceiver : MonoBehaviour
         // Xóa player khỏi danh sách và hàng đợi trong GameManager
         GameManager.instance.RemovePlayer(transform);
         Destroy(transform.gameObject);
+    }
+     public float getHp()
+    {
+        return this.Hp;
     }
 }
