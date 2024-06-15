@@ -13,6 +13,9 @@ public class DamageSender : MonoBehaviour
         if (damageReceiver != null)
         {
             damageReceiver.Damaged(this.damage);
+
+          
+
         }
 
         // Kiểm tra xem đối tượng va chạm có phải là Tilemap hay không

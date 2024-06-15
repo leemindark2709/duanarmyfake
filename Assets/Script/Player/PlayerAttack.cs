@@ -41,6 +41,7 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
+
         hp = damageReceiver.getHp();
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -54,6 +55,7 @@ public class PlayerAttack : MonoBehaviour
             isHoldingSpace = false;
             Debug.Log("Space button released");
             SpawnBullet(this.bulletname);
+            damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
             this.bulletname = "PlayerBullet";
         }
 
@@ -112,12 +114,9 @@ public class PlayerAttack : MonoBehaviour
             bulletname = "PlayerPow";
             numofusesr -= 1;
             skillInGame.numofusesr = numofusesr;
-
-            if (numofusesr == 0)
-            {
-                powImage.enabled = false;
-            }
+           
         }
+        powImage.enabled = false;
     }
 
     void SpawnBullet(string bulletname)
@@ -149,6 +148,10 @@ public class PlayerAttack : MonoBehaviour
 
     void CheckHp()
     {
-        powImage.enabled = hp < 5;
+        if (numofusesr>0)
+        {
+            powImage.enabled = hp < 5;
+        }
+     
     }
 }

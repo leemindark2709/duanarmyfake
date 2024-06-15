@@ -11,6 +11,9 @@ public class PlayerMoving : MonoBehaviour
     public float distance = 0f;
     private Vector3 lastPosition;
 
+
+    public object Tỉme { get; internal set; }
+
     private void Awake()
     {
         Instance = this;

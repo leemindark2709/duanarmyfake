@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using static Unity.Collections.AllocatorManager;
-using UnityEngine.Timeline;
+using UnityEngine.UI;
 
 public class DamageReceiver : MonoBehaviour
 {
@@ -9,59 +8,84 @@ public class DamageReceiver : MonoBehaviour
     public PlayerHP playerHP;
     public float Hp = 0;
     public float maxHp = 10;
+
     private void Awake()
     {
-            Instance = this;
+        Instance = this;
     }
+
     private void Start()
-    {   
-        //playerHP = GetComponent<PlayerHP>();    
+    {
+        // Lấy tham chiếu tới PlayerHP
         playerHP = playertable.Find("CanvasUI").Find("BloodBar").Find("BloodBar").GetComponent<PlayerHP>();
 
-
-
+        // Reset HP khi bắt đầu
+        ResetHP();
     }
+
+    private void Update()
+    {
+        // Kiểm tra và cập nhật trạng thái của Pow image
+        CheckHp();
+    }
+
     private void OnEnable()
     {
-        this.ResetHP();
+        ResetHP();
     }
 
     protected virtual void ResetHP()
     {
-        this.Hp = this.maxHp;
+        Hp = maxHp;
     }
 
     public virtual void Damaged(float damage)
     {
-        this.Hp -= damage;
-        //playerHP.UpdateHP(hp, maxHp);
-       playerHP.UpdateHP(Hp, maxHp); 
-        if (this.Hp <= 0) this.Hp = 0;
+        Hp -= damage;
+        playerHP.UpdateHP(Hp, maxHp);
 
-        this.Dying();
+        if (Hp <= 0)
+        {
+            Hp = 0;
+            Dying();
+        }
     }
 
     protected virtual void Dying()
     {
-        if (this.IsAlive()) return;
+        if (IsAlive()) return;
         Debug.Log(transform.name + " Dying");
 
-        this.Despawn();
+        Despawn();
     }
 
     protected virtual bool IsAlive()
     {
-        return this.Hp > 0;
+        return Hp > 0;
     }
 
     protected virtual void Despawn()
     {
         // Xóa player khỏi danh sách và hàng đợi trong GameManager
         GameManager.instance.RemovePlayer(transform);
-        Destroy(transform.gameObject);
+        GameManager.instance.GetRemainingTeam();
+        Destroy(gameObject);
     }
-     public float getHp()
+
+    public float getHp()
     {
-        return this.Hp;
+        return Hp;
+    }
+
+    void CheckHp()
+    {
+        var playerAttack = transform.Find("Canon").Find("PlayerAttack").GetComponent<PlayerAttack>();
+        if (playerAttack.numofusesr>0)
+        {
+            playertable.Find("CanvasUI").Find("Pow").Find("Pow").GetComponent<Image>().enabled = Hp < 5;
+        }
+       
+          
+     
     }
 }

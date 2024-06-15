@@ -11,9 +11,11 @@ public class GameManager : MonoBehaviour
     public List<Transform> pointsTable;
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
+    public float enableTime;
 
-    private Queue<Transform> queuePlayer = new Queue<Transform>(); 
+    private Queue<Transform> queuePlayer = new Queue<Transform>();
     private Queue<Transform> queueTable = new Queue<Transform>();
+
 
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
@@ -29,7 +31,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         players = new List<Transform>();
-       
+
         PlayerManager.Instance.LoadPlayer();
         PlayerAppear.Instance.LoadCheckPoint();
         PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
@@ -44,7 +46,7 @@ public class GameManager : MonoBehaviour
             Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
             playerTable.gameObject.SetActive(true);
             player.GetComponent<DamageReceiver>().playertable = playerTable;
- 
+
             if (player != null)
             {
                 turnOffComponent(player);
@@ -72,6 +74,15 @@ public class GameManager : MonoBehaviour
 
         // Bắt đầu chu kỳ chuyển lượt
         switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+    }
+    private void Update()
+    {
+        //string teamStatus = GetRemainingTeam();
+        //if (teamStatus.Equals("Team Lẻ win."))
+        //{   
+        //    transform.parent.Find("NoticeWin"). 
+        //    teamStatusText.text = teamStatus;
+        //}
     }
 
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
@@ -106,16 +117,12 @@ public class GameManager : MonoBehaviour
     {
         return PlayerManager.Instance.Spawn(name, point.position);
 
-    } 
+    }
     protected virtual Transform SpawnPlayerTable(string name, Transform point)
     {
         return PlayerTableManager.Instance.Spawn(name, point.position);
 
     }
-    //protected virtual Transform SpawnPlayerTable(string name, Transform point)
-    //{
-    //    return PlayerTableManager.Instance.Spawn(name, point.position);
-    //}
 
     // Hàm để thêm player vào hàng đợi
     protected void AddPlayerToQueue(Transform player)
@@ -130,6 +137,7 @@ public class GameManager : MonoBehaviour
 
         var playerMoving = player.GetComponent<PlayerMoving>();
         if (playerMoving != null) playerMoving.enabled = false;
+        enableTime = 0;
 
         var animator = player.GetComponent<Animator>();
         if (animator != null) animator.enabled = false;
@@ -139,21 +147,15 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
-
         //var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
-        //if (playerAttack != null) 
-        //{ playerForce.enabled = false;
-
-        //}
-
-
+        //if (playerAttack != null) playerForce.enabled = false;
     }
 
     // Hàm để bật các component của một player
     public void turnOnComponent(Transform player)
-    {
+    {   player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
         if (player == null) return;
-
+        enableTime = Time.time;
         var playerMoving = player.GetComponent<PlayerMoving>();
         if (playerMoving != null) playerMoving.enabled = true;
 
@@ -165,8 +167,6 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = true;
-        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerHP>().enabled = true;
-        //player.GetComponent<DamageReceiver>().playertable.GetComponent<PlayerForce>().enabled = true;
         var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
         if (playerAttack != null) playerForce.enabled = true;
     }
@@ -268,7 +268,26 @@ public class GameManager : MonoBehaviour
     public void OnBulletSpawned()
     {
         // Đặt thời gian chuyển lượt thành 3 giây và reset chu kỳ
-        switchDelay = 0f;
+        switchDelay = 2f;
         ResetSwitchCycle();
     }
+
+public string  GetRemainingTeam()
+    {
+        if (teamEven.Count == 0 && teamOdd.Count == 0)
+        {
+            return "Cả hai team đều không có người.";
+        }
+        else if (teamEven.Count == 0)
+        {
+     return"Team Lẻ win.";
+        }
+        else if (teamOdd.Count == 0)
+        {
+           return"Team Chẵn win.";
+        }
+        return "";
+
+    }
+
 }
