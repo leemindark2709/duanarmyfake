@@ -6,7 +6,9 @@ public class PlayerForce : MonoBehaviour
     public static PlayerForce instance; 
     public Image fillableImage; // Tham chiếu đến Image component
     public float fillSpeed = 10f; // Tốc độ lấp đầy
-    private float lastFillAmount = 0f; // Giá trị fill amount cuối cùng trước khi reset
+    public float lastFillAmount = 0f; // Giá trị fill amount cuối cùng trước khi reset
+    public float time;
+    public float fillamount;
     private void Awake()
     {
         instance = this;
@@ -26,9 +28,43 @@ public class PlayerForce : MonoBehaviour
 
     void Update()
     {
+        fillamount=fillableImage.fillAmount;
         if (GameManager.instance.ActivePlayer.GetComponent<DamageReceiver>().playertable == transform.parent.parent.parent)
         {
-            checkSpace();
+            time = Time.time - GameManager.instance.ActivePlayer.GetComponent<PlayerMoving>().time;
+            // Kiểm tra nếu phím Space được giữ
+            if (Input.GetKey(KeyCode.Space))
+            {
+                if ( time < 10)
+                {
+                    fillableImage.fillAmount += Time.deltaTime * fillSpeed;
+                    if (fillableImage.fillAmount > 1f)
+                    {
+                        fillableImage.fillAmount = 1f;
+                    }
+
+                }
+                else if (time ==10)
+                {
+                    // Lưu giá trị fill amount hiện tại trước khi reset
+                    lastFillAmount = fillableImage.fillAmount;
+                    // Đặt lại fill amount về 0 khi nhả phím Space 
+                    fillableImage.fillAmount = 0f;
+                    
+                }    
+                // Tăng fill amount theo thời gian cho đến khi đạt 1
+               
+            }
+           
+            else if (Input.GetKeyUp(KeyCode.Space))
+            {
+                // Lưu giá trị fill amount hiện tại trước khi reset
+                lastFillAmount = fillableImage.fillAmount;
+                // Đặt lại fill amount về 0 khi nhả phím Space
+                fillableImage.fillAmount = 0f;
+            }
+           
+
         }
         
 
@@ -53,22 +89,6 @@ public class PlayerForce : MonoBehaviour
     }
     public void checkSpace()
     {
-        // Kiểm tra nếu phím Space được giữ
-        if (Input.GetKey(KeyCode.Space))
-        {
-            // Tăng fill amount theo thời gian cho đến khi đạt 1
-            fillableImage.fillAmount += Time.deltaTime * fillSpeed;
-            if (fillableImage.fillAmount > 1f)
-            {
-                fillableImage.fillAmount = 1f;
-            }
-        }
-        else if (Input.GetKeyUp(KeyCode.Space))
-        {
-            // Lưu giá trị fill amount hiện tại trước khi reset
-            lastFillAmount = fillableImage.fillAmount;
-            // Đặt lại fill amount về 0 khi nhả phím Space
-            fillableImage.fillAmount = 0f; 
-        }
+     
     }
 }

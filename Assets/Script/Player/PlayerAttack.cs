@@ -4,19 +4,19 @@ using UnityEngine.UI;
 
 public class PlayerAttack : MonoBehaviour
 {
-    private bool isHoldingSpace = false;
+    [SerializeField]private bool isHoldingSpace = false;
     public string bulletname = "PlayerBullet";
     public string skillName;
     public int numofusesq;
     public int numofusese;
     public int numofusesr;
     public float hp;
-
     private DamageReceiver damageReceiver;
     private SkillInGame skillInGame;
     private Image healImage;
     private Image flashImage;
     private Image powImage;
+    public float time;
 
     void Start()
     {
@@ -41,15 +41,22 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-
+        time = Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time;
         hp = damageReceiver.getHp();
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && (Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time) < 10)
         {
             isHoldingSpace = true;
             Debug.Log("Space button pressed");
         }
-
+        if (Input.GetKey(KeyCode.Space) && (Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time) >= 10)
+        {
+            isHoldingSpace = false;
+            Debug.Log("Space button released");
+            SpawnBullet(this.bulletname);
+            damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
+            this.bulletname = "PlayerBullet";
+        }
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isHoldingSpace = false;
@@ -141,7 +148,7 @@ public class PlayerAttack : MonoBehaviour
         Transform newSkill = SkillManager.Instance.Spawn(skill, transform.parent.parent);
         if (newSkill != null)
         {
-            newSkill.gameObject.SetActive(true);
+            newSkill.gameObject.SetActive(true); 
             Debug.Log("Skill spawned: " + skillName);
         }
     }

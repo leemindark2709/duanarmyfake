@@ -10,7 +10,7 @@ public class PlayerMoving : MonoBehaviour
     public bool facingRight = true;
     public float distance = 0f;
     private Vector3 lastPosition;
-
+    public float time;
 
     public object Tỉme { get; internal set; }
 
@@ -20,11 +20,16 @@ public class PlayerMoving : MonoBehaviour
     }
     private void Start()
     {
+        
         distance = 0;
         lastPosition = transform.position;
         animator = GetComponent<Animator>();
         // Ban đầu, tắt Animator
         animator.enabled = false;
+    }
+    private void OnEnable()
+    {
+        time = Time.time;
     }
 
     void Update()
