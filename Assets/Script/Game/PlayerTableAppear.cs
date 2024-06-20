@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class PlayerTableAppear : MonoBehaviour
 {
-    public static new PlayerTableAppear Instance { get; private set; }
+    public static PlayerTableAppear Instance;
     public string SpawnPlayerTableCPName = "SpawnPlayerTableCP";
     public Transform SpawnPlayerTableCP;
-    public new List<Transform> CheckPoints; // Use 'new' to hide the CheckPoints from the base class
-    public float requiredDistance = 2f; // Rename requiredDistance to avoid conflict
+    public List<Transform> CheckPoints; // Remove 'new' keyword to resolve CS0109 warning
+    public float pointRequiredDistance = 2f; // Rename to avoid conflict
 
     private void Awake()
     {
@@ -19,7 +19,7 @@ public class PlayerTableAppear : MonoBehaviour
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+        
         }
     }
 
@@ -32,6 +32,7 @@ public class PlayerTableAppear : MonoBehaviour
             CheckPoints.Add(checkpoint);
         }
     }
+
     public virtual void GetPoints(int pointCount, float requiredDistance, out List<Transform> points)
     {
         points = new List<Transform>();
@@ -55,7 +56,7 @@ public class PlayerTableAppear : MonoBehaviour
                 bool isValid = true;
                 foreach (Transform point in points)
                 {
-                    if (Vector3.Distance(point.position, checkpoint.position) < requiredDistance)
+                    if (Vector3.Distance(point.position, checkpoint.position) < pointRequiredDistance)
                     {
                         isValid = false;
                         break;

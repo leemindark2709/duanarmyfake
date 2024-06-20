@@ -44,7 +44,7 @@ public class PlayerForce : MonoBehaviour
                     }
 
                 }
-                else if (time ==10)
+                else if (time >=10)
                 {
                     // Lưu giá trị fill amount hiện tại trước khi reset
                     lastFillAmount = fillableImage.fillAmount;

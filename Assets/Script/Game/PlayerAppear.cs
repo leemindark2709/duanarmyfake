@@ -13,7 +13,7 @@ public class PlayerAppear : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
     }
 
     public virtual void LoadCheckPoint() 

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public PickPlayer pickPlayer;
     public static GameManager instance;
     public float requiredDistance = 2f;
     public int playerCount = 2; // Số lượng Player muốn tạo
@@ -32,7 +33,7 @@ public class GameManager : MonoBehaviour
     {
         players = new List<Transform>();
 
-        PlayerManager.Instance.LoadPlayer();
+        //PlayerManager.Instance.LoadPlayer();
         PlayerAppear.Instance.LoadCheckPoint();
         PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
         PlayerTableManager.Instance.LoadPlayer();
