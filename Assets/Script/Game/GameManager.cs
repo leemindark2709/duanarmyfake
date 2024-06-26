@@ -6,24 +6,21 @@ public class GameManager : MonoBehaviour
 {
     public PickPlayer pickPlayer;
     public static GameManager instance;
-    public float requiredDistance = 2f;
-    public int playerCount = 2; // Số lượng Player muốn tạo
+    public float requiredDistance = 0f;
+    public int playerCount=0; // Số lượng Player muốn tạo
     public List<Transform> points;
     public List<Transform> pointsTable;
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     public float enableTime;
-
     private Queue<Transform> queuePlayer = new Queue<Transform>();
     private Queue<Transform> queueTable = new Queue<Transform>();
-
-
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
     private Coroutine switchCoroutine;
     private float defaultSwitchDelay = 10f;
     private float switchDelay = 10f;
-
+    private bool playersCreated = false; // Biến cờ để theo dõi việc tạo player
     private void Awake()
     {
         instance = this;
@@ -31,107 +28,89 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        pickPlayer = FindObjectOfType<PickPlayer>();
         players = new List<Transform>();
-
-        //PlayerManager.Instance.LoadPlayer();
         PlayerAppear.Instance.LoadCheckPoint();
         PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
         PlayerTableManager.Instance.LoadPlayer();
         PlayerTableAppear.Instance.LoadCheckPoint();
         PlayerTableAppear.Instance.GetPoints(playerCount, requiredDistance, out pointsTable);
-        //Tạo và thêm các Player vào hàng đợi
-        for (int i = 0; i < playerCount; i++)
-        {
-            Transform player = SpawnPlayer("Player", points[i]);
-            player.gameObject.SetActive(true);
-            Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
-            playerTable.gameObject.SetActive(true);
-            player.GetComponent<DamageReceiver>().playertable = playerTable;
-
-            if (player != null)
-            {
-                turnOffComponent(player);
-                AddPlayerToQueue(player);
-                players.Add(player);
-
-                // Thêm player vào team chẵn hoặc lẻ
-                if (i % 2 == 0)
-                {
-                    teamEven.Add(player);
-                }
-                else
-                {
-                    teamOdd.Add(player);
-                }
-            }
-        }
 
         // Đặt Player đầu tiên trong hàng đợi làm ActivePlayer ban đầu
-        if (queuePlayer.Count > 0)
-        {
-            ActivePlayer = queuePlayer.Peek();
-            turnOnComponent(ActivePlayer);
-        }
-
-        // Bắt đầu chu kỳ chuyển lượt
-        switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+       
     }
+
     private void Update()
     {
-        //string teamStatus = GetRemainingTeam();
-        //if (teamStatus.Equals("Team Lẻ win."))
-        //{   
-        //    transform.parent.Find("NoticeWin"). 
-        //    teamStatusText.text = teamStatus;
-        //}
-    }
+        if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count)
+        {
+            for (int i = 0; i < playerCount; i++)
+            {
+                Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
+                player.gameObject.SetActive(true);
+                Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+                playerTable.gameObject.SetActive(true);
+                player.GetComponent<DamageReceiver>().playertable = playerTable;
 
+                if (player != null)
+                {
+                    turnOffComponent(player);
+                    AddPlayerToQueue(player);
+                    players.Add(player);
+
+                    // Thêm player vào team chẵn hoặc lẻ
+                    if (i % 2 == 0)
+                    {
+                        teamEven.Add(player);
+                    }
+                    else
+                    {
+                        teamOdd.Add(player);
+                    }
+                }
+            }
+            if (queuePlayer.Count > 0)
+            {
+                ActivePlayer = queuePlayer.Peek();
+                turnOnComponent(ActivePlayer);
+            }
+            switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+            playersCreated = true; // Đánh dấu rằng các player đã được tạo
+        }
+        
+
+        // Bắt đầu chu kỳ chuyển lượt
+     
+    }
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
     void SwitchActivePlayer()
     {
-        // Nếu hàng đợi rỗng, không làm gì cả
         if (queuePlayer.Count == 0)
-            return;
-
-        // Lấy và loại bỏ player hiện tại khỏi đầu hàng đợi
+        return;
         Transform previousPlayer = queuePlayer.Dequeue();
-
-        // Tắt component của player hiện tại
         turnOffComponent(previousPlayer);
-
-        // Đưa player hiện tại vào cuối hàng đợi
         queuePlayer.Enqueue(previousPlayer);
-
-        // Lấy player mới từ đầu hàng đợi
         ActivePlayer = queuePlayer.Peek();
-
-        // Bật component của player mới
         turnOnComponent(ActivePlayer);
-
-        // Đặt lại thời gian chuyển lượt về giá trị mặc định
         switchDelay = defaultSwitchDelay;
         ResetSwitchCycle();
     }
 
-    // Hàm để tạo ra một player mới
     protected virtual Transform SpawnPlayer(string name, Transform point)
     {
         return PlayerManager.Instance.Spawn(name, point.position);
-
     }
+
     protected virtual Transform SpawnPlayerTable(string name, Transform point)
     {
         return PlayerTableManager.Instance.Spawn(name, point.position);
-
     }
 
-    // Hàm để thêm player vào hàng đợi
     protected void AddPlayerToQueue(Transform player)
     {
         queuePlayer.Enqueue(player);
     }
 
-    // Hàm để tắt các component của một player
     public void turnOffComponent(Transform player)
     {
         if (player == null) return;
@@ -148,13 +127,11 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
-        //var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
-        //if (playerAttack != null) playerForce.enabled = false;
     }
 
-    // Hàm để bật các component của một player
     public void turnOnComponent(Transform player)
-    {   player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
+    {
+        player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
         if (player == null) return;
         enableTime = Time.time;
         var playerMoving = player.GetComponent<PlayerMoving>();
@@ -172,13 +149,10 @@ public class GameManager : MonoBehaviour
         if (playerAttack != null) playerForce.enabled = true;
     }
 
-    // Hàm để xóa player khỏi hàng đợi và danh sách
     public void RemovePlayer(Transform player)
     {
-        // Xóa player khỏi danh sách
         players.Remove(player);
 
-        // Xóa player khỏi hàng đợi chính
         Queue<Transform> newQueue = new Queue<Transform>();
         while (queuePlayer.Count > 0)
         {
@@ -190,7 +164,6 @@ public class GameManager : MonoBehaviour
         }
         queuePlayer = newQueue;
 
-        // Xóa player khỏi team chẵn hoặc lẻ
         if (teamEven.Contains(player))
         {
             teamEven.Remove(player);
@@ -200,7 +173,6 @@ public class GameManager : MonoBehaviour
             teamOdd.Remove(player);
         }
 
-        // Kiểm tra nếu ActivePlayer bị tiêu diệt, chuyển sang player mới
         if (ActivePlayer == player)
         {
             if (queuePlayer.Count > 0)
@@ -215,7 +187,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Hàm để kiểm tra player thuộc team nào
     public string GetPlayerTeam(Transform player)
     {
         if (teamEven.Contains(player))
@@ -232,13 +203,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Hàm để kiểm tra xem có hàng đợi nào rỗng không
     public bool IsAnyQueueEmpty()
     {
         return teamEven.Count == 0 || teamOdd.Count == 0;
     }
 
-    // Coroutine để chuyển lượt theo chu kỳ
     private IEnumerator SwitchActivePlayerCycle()
     {
         while (true)
@@ -248,7 +217,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Hàm để đặt lại chu kỳ chuyển lượt
     public void ResetSwitchCycle()
     {
         if (switchCoroutine != null)
@@ -258,22 +226,19 @@ public class GameManager : MonoBehaviour
         switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
     }
 
-    // Hàm để chuyển lượt sau một khoảng thời gian ngắn
     public IEnumerator SwitchActivePlayerAfterSeconds(float seconds)
     {
         yield return new WaitForSeconds(seconds);
         SwitchActivePlayer();
     }
 
-    // Hàm để xử lý sự kiện SpawnBullet
     public void OnBulletSpawned()
     {
-        // Đặt thời gian chuyển lượt thành 3 giây và reset chu kỳ
         switchDelay = 2f;
         ResetSwitchCycle();
     }
 
-public string  GetRemainingTeam()
+    public string GetRemainingTeam()
     {
         if (teamEven.Count == 0 && teamOdd.Count == 0)
         {
@@ -281,14 +246,12 @@ public string  GetRemainingTeam()
         }
         else if (teamEven.Count == 0)
         {
-     return"Team Lẻ win.";
+            return "Team Lẻ win.";
         }
         else if (teamOdd.Count == 0)
         {
-           return"Team Chẵn win.";
+            return "Team Chẵn win.";
         }
         return "";
-
     }
-
 }

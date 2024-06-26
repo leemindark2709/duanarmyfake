@@ -3,41 +3,62 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PickPlayer : MonoBehaviour
-{
+{   public static PickPlayer instance;
     public string PickPlayerName = "PickPlayer";
     public Transform PlayerPicks;
     public List<Transform> ListPlayer; // Ensure this is a member variable
-    public int CountPlayer;
+    public int playerCount = 0;
     public Transform ActivePlayer;
     private int activePlayerIndex = 0;
-    public List<Transform>ListPlayerInGames;
+    public List<Transform> ListPlayerInGames;
 
+    public bool isInitialized = true; // Flag to ensure Update logic runs only once
+
+    private void Awake()
+    {
+        instance = this;
+    }
     // Phương thức để tải các players
     public virtual void LoadPlayer()
     {
-
         PlayerPicks = GameObject.Find(PickPlayerName).transform;
         ListPlayer = new List<Transform>(); // Initialize ListPlayer as a member variable
         foreach (Transform t in PlayerPicks)
         {
             ListPlayer.Add(t);
-            t.gameObject.SetActive(false); // Tắt tất cả các player
+            //t.gameObject.SetActive(false); // Tắt tất cả các player
         }
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        CountPlayer = 4; // Đặt số lượng player cần hiển thị
         LoadPlayer(); // Tải các player
-        if (ListPlayer.Count > 0)
+    }
+
+    void Update()
+    {
+       
+        playerCount = GameManager.instance.playerCount;
+
+        if (!isInitialized && playerCount != 0)
         {
-            ActivePlayer = ListPlayer[0];
-            ActivePlayer.gameObject.SetActive(true); // Bật ActivePlayer
-        }
-        for (int i = 0; i < CountPlayer && i < ListPlayer.Count; i++)
-        {
-            ListPlayer[i].gameObject.SetActive(true); // Bật các player đầu tiên theo CountPlayer
+            if (ListPlayer.Count > 0)
+            {
+                ActivePlayer = ListPlayer[0];
+                ActivePlayer.gameObject.SetActive(true); // Bật ActivePlayer
+            }
+
+            if (playerCount==2)
+            {
+                ListPlayer[3].gameObject.SetActive(false);
+                ListPlayer[2].gameObject.SetActive(false);
+
+            }
+           
+            
+
+            isInitialized = true; // Set the flag to true to ensure this logic runs only once
         }
     }
 
@@ -49,15 +70,9 @@ public class PickPlayer : MonoBehaviour
             return;
         }
 
-        //ActivePlayer.gameObject.SetActive(false); // Tắt ActivePlayer hiện tại
+        ActivePlayer.GetComponent<Player>().enabled=false; // Tắt ActivePlayer hiện tại
         activePlayerIndex = (activePlayerIndex + 1) % ListPlayer.Count; // Chuyển sang player tiếp theo, nếu vượt quá thì quay về 0
         ActivePlayer = ListPlayer[activePlayerIndex];
-        //ActivePlayer.gameObject.SetActive(true); // Bật player mới
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        ActivePlayer.gameObject.SetActive(true); // Bật player mới
     }
 }

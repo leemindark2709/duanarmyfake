@@ -6,10 +6,12 @@ using UnityEngine.UI;
 public class ButtonOK : MonoBehaviour
 {
     public PickPlayer pickPlayer;
+    private GameObject pickScene;
 
     // Start is called before the first frame update
     void Start()
     {
+        pickScene = GameObject.Find("PickScene");
         pickPlayer = FindObjectOfType<PickPlayer>(); // Tìm đối tượng PickPlayer trong scene
         if (pickPlayer == null)
         {
@@ -31,8 +33,12 @@ public class ButtonOK : MonoBehaviour
         {
             pickPlayer.ListPlayerInGames.Add(pickPlayer.ActivePlayer.GetComponent<Player>().player);
             pickPlayer.NextPlayer(); // Gọi phương thức NextPlayer từ PickPlayer
-         
+            
 
+        }
+        if (pickPlayer.ListPlayerInGames.Count == GameManager.instance.playerCount)
+        {
+            pickScene.SetActive(false);
         }
     }
 }
