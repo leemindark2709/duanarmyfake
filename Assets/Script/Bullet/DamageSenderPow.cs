@@ -12,6 +12,7 @@ public class DamageSenderPow : MonoBehaviour
         if (damageReceiver != null)
         {
             damageReceiver.Damaged(this.damage);
+            BulletManager.instance.SpawnExplosion("ExplosionPow", other.transform.position);
         }
 
         // Kiểm tra xem đối tượng va chạm có phải là Tilemap hay không

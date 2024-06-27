@@ -1,33 +1,35 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class Mode1vs1 : Mode
+public class Home : MonoBehaviour
 {
     [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
-
     private void Awake()
     {
         // Gán AudioSource component
         audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
-
-    public override void OnButtonClick()
+    public void home()
     {
+
+        //SceneManager.LoadScene("") 
         audioManger.PlaySFX(audioManger.ButtonClick);
-        Debug.Log("Button clicked in Mode1vs1");
-        GameManager.instance.playerCount = 2;
-        PickPlayer.instance.isInitialized = false;
-        GameObject.Find("HomeScene").SetActive(false);
+
+        SceneManager.LoadScene("SampleScene");
+
+        Time.timeScale = 1f;
     }
+    // Start is called before the first frame update
     void Start()
     {
-
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        
     }
 }

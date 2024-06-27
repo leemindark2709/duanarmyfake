@@ -7,7 +7,13 @@ public class ButtonOK : MonoBehaviour
 {
     public PickPlayer pickPlayer;
     private GameObject pickScene;
+    [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
 
+    private void Awake()
+    {
+        // Gán AudioSource component
+        audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -28,7 +34,7 @@ public class ButtonOK : MonoBehaviour
     // Phương thức để xử lý sự kiện click button
     public void OnButtonClick()
     {
-
+        audioManger.PlaySFX(audioManger.ButtonClick);
         if (pickPlayer != null)
         {
             pickPlayer.ListPlayerInGames.Add(pickPlayer.ActivePlayer.GetComponent<Player>().player);

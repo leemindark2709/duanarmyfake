@@ -17,6 +17,13 @@ public class PlayerAttack : MonoBehaviour
     private Image flashImage;
     private Image powImage;
     public float time;
+    [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
+
+    private void Awake()
+    {
+        // Gán AudioSource component
+        audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+    }
 
     void Start()
     {
@@ -53,6 +60,7 @@ public class PlayerAttack : MonoBehaviour
         {
             isHoldingSpace = false;
             Debug.Log("Space button released");
+        
             SpawnBullet(this.bulletname);
             damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
             this.bulletname = "PlayerBullet";
@@ -87,6 +95,7 @@ public class PlayerAttack : MonoBehaviour
 
     void UseSkillQ()
     {
+        audioManger.PlaySFX(audioManger.HealSkill);
         Debug.Log("Q button pressed");
         SpawnSkill("Heal");
         numofusesq -= 1;
@@ -129,6 +138,7 @@ public class PlayerAttack : MonoBehaviour
     void SpawnBullet(string bulletname)
     {
         Debug.Log("ok");
+        audioManger.PlaySFX(audioManger.SpawBulletSound);
         Vector3 spawnPosition = transform.position;
         Transform newBullet = BulletManager.instance.SpawnBullet(bulletname, spawnPosition, transform.parent.parent);
 

@@ -1,21 +1,26 @@
-﻿using System.Collections;
+﻿ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class DamageSender : MonoBehaviour
-{
+{   
     public float damage = 1;
+    [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
 
-    private  void OnTriggerEnter2D(Collider2D other)
+    private void Awake()
+    {
+        // Gán AudioSource component
+        audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+    }
+    private void OnTriggerEnter2D(Collider2D other)
     {
         DamageReceiver damageReceiver = other.GetComponent<DamageReceiver>();
         if (damageReceiver != null)
         {
+            audioManger.PlaySFX(audioManger.DameSender);
             damageReceiver.Damaged(this.damage);
-
-          
-
+            BulletManager.instance.SpawnExplosion("ExplosionBullet", other.transform.position);
         }
 
         // Kiểm tra xem đối tượng va chạm có phải là Tilemap hay không
