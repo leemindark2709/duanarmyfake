@@ -55,6 +55,7 @@ public class GameManager : MonoBehaviour
                 if (player != null)
                 {
                     turnOffComponent(player);
+                    player.Find("Status").gameObject.SetActive(false);
                     AddPlayerToQueue(player);
                     players.Add(player);
 
@@ -71,8 +72,9 @@ public class GameManager : MonoBehaviour
             }
             if (queuePlayer.Count > 0)
             {
-                ActivePlayer = queuePlayer.Peek();
+                ActivePlayer = queuePlayer.Peek(); 
                 turnOnComponent(ActivePlayer);
+                ActivePlayer.Find("Status").gameObject.SetActive(true);
             }
             switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
             playersCreated = true; // Đánh dấu rằng các player đã được tạo
@@ -89,9 +91,11 @@ public class GameManager : MonoBehaviour
         return;
         Transform previousPlayer = queuePlayer.Dequeue();
         turnOffComponent(previousPlayer);
+        previousPlayer.Find("Status").gameObject.SetActive(false);
         queuePlayer.Enqueue(previousPlayer);
         ActivePlayer = queuePlayer.Peek();
         turnOnComponent(ActivePlayer);
+        ActivePlayer.Find("Status").gameObject.SetActive(true);
         switchDelay = defaultSwitchDelay;
         ResetSwitchCycle();
     }
@@ -113,8 +117,9 @@ public class GameManager : MonoBehaviour
 
     public void turnOffComponent(Transform player)
     {
-        if (player == null) return;
+        
 
+        if (player == null) return;
         var playerMoving = player.GetComponent<PlayerMoving>();
         if (playerMoving != null) playerMoving.enabled = false;
         enableTime = 0;
@@ -127,10 +132,11 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
+        player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = false ;
     }
 
     public void turnOnComponent(Transform player)
-    {
+    {   
         player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
         if (player == null) return;
         enableTime = Time.time;
@@ -147,6 +153,9 @@ public class GameManager : MonoBehaviour
         if (playerAttack != null) playerAttack.enabled = true;
         var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
         if (playerAttack != null) playerForce.enabled = true;
+        var timeActive = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
+        if (playerAttack != null) timeActive.enabled = true;
+        player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = true;
     }
 
     public void RemovePlayer(Transform player)

@@ -51,9 +51,7 @@ public class PlayerForce : MonoBehaviour
                     // Đặt lại fill amount về 0 khi nhả phím Space 
                     fillableImage.fillAmount = 0f;
                     
-                }    
-                // Tăng fill amount theo thời gian cho đến khi đạt 1
-               
+                }  
             }
            
             else if (Input.GetKeyUp(KeyCode.Space))

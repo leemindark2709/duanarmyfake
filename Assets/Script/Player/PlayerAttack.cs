@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField]private bool isHoldingSpace = false;
+    [SerializeField] private bool isHoldingSpace = false;
     public string bulletname = "PlayerBullet";
     public string skillName;
     public int numofusesq;
@@ -60,9 +60,11 @@ public class PlayerAttack : MonoBehaviour
         {
             isHoldingSpace = false;
             Debug.Log("Space button released");
-        
+
             SpawnBullet(this.bulletname);
+            ResetTimers();
             damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
+
             this.bulletname = "PlayerBullet";
         }
         if (Input.GetKeyUp(KeyCode.Space))
@@ -70,7 +72,7 @@ public class PlayerAttack : MonoBehaviour
             isHoldingSpace = false;
             Debug.Log("Space button released");
             SpawnBullet(this.bulletname);
-            damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
+            ResetTimers();
             this.bulletname = "PlayerBullet";
         }
 
@@ -130,7 +132,6 @@ public class PlayerAttack : MonoBehaviour
             bulletname = "PlayerPow";
             numofusesr -= 1;
             skillInGame.numofusesr = numofusesr;
-           
         }
         powImage.enabled = false;
     }
@@ -158,17 +159,27 @@ public class PlayerAttack : MonoBehaviour
         Transform newSkill = SkillManager.Instance.Spawn(skill, transform.parent.parent);
         if (newSkill != null)
         {
-            newSkill.gameObject.SetActive(true); 
+            newSkill.gameObject.SetActive(true);
             Debug.Log("Skill spawned: " + skillName);
         }
     }
 
     void CheckHp()
     {
-        if (numofusesr>0)
+        if (numofusesr > 0)
         {
             powImage.enabled = hp < 5;
         }
-     
+    }
+
+    void ResetTimers()
+    {
+        var playerForce = damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
+        var timeActive = damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
+
+        playerForce.enabled = false;
+        timeActive.timerImage.fillAmount = 1f;
+        timeActive.elapsedTime = 0;
+        timeActive.enabled = false;
     }
 }
