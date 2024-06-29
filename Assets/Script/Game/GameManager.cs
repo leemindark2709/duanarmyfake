@@ -21,9 +21,16 @@ public class GameManager : MonoBehaviour
     private float defaultSwitchDelay = 10f;
     private float switchDelay = 10f;
     private bool playersCreated = false; // Biến cờ để theo dõi việc tạo player
+
+    private bool delayStarted = false;
+    private float delayStartTime;
+    [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
+
+   
     private void Awake()
     {
         instance = this;
+        audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
 
     private void Start()
@@ -44,45 +51,56 @@ public class GameManager : MonoBehaviour
     {
         if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count)
         {
-            for (int i = 0; i < playerCount; i++)
+            if (!delayStarted)
             {
-                Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
-                player.gameObject.SetActive(true);
-                Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
-                playerTable.gameObject.SetActive(true);
-                player.GetComponent<DamageReceiver>().playertable = playerTable;
+                delayStarted = true;
+                delayStartTime = Time.time;
+            }
 
-                if (player != null)
+            if (Time.time >= delayStartTime + 5f)
+            {
+                for (int i = 0; i < playerCount; i++)
                 {
-                    turnOffComponent(player);
-                    player.Find("Status").gameObject.SetActive(false);
-                    AddPlayerToQueue(player);
-                    players.Add(player);
+                    Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
+                    player.gameObject.SetActive(true);
+                    Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+                    playerTable.gameObject.SetActive(true);
+                    player.GetComponent<DamageReceiver>().playertable = playerTable;
 
-                    // Thêm player vào team chẵn hoặc lẻ
-                    if (i % 2 == 0)
+                    if (player != null)
                     {
-                        teamEven.Add(player);
-                    }
-                    else
-                    {
-                        teamOdd.Add(player);
+                        turnOffComponent(player);
+                        player.Find("Status").Find("arrow").gameObject.SetActive(false);
+                        AddPlayerToQueue(player);
+                        players.Add(player);
+
+                        // Thêm player vào team chẵn hoặc lẻ
+                        if (i % 2 == 0)
+                        {
+                            teamEven.Add(player);
+                            player.Find("Status").Find("Canvas").Find("teamolder").gameObject.SetActive(true);
+                        }
+                        else
+                        {
+                            teamOdd.Add(player);
+                            player.Find("Status").Find("Canvas").Find("teameven").gameObject.SetActive(true);
+                        }
                     }
                 }
+                if (queuePlayer.Count > 0)
+                {
+                    ActivePlayer = queuePlayer.Peek();
+                    turnOnComponent(ActivePlayer);
+                    ActivePlayer.Find("Status").gameObject.SetActive(true);
+                    ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
+
+                }
+                switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+                playersCreated = true; // Đánh dấu rằng các player đã được tạo
             }
-            if (queuePlayer.Count > 0)
-            {
-                ActivePlayer = queuePlayer.Peek(); 
-                turnOnComponent(ActivePlayer);
-                ActivePlayer.Find("Status").gameObject.SetActive(true);
-            }
-            switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
-            playersCreated = true; // Đánh dấu rằng các player đã được tạo
         }
-        
 
         // Bắt đầu chu kỳ chuyển lượt
-     
     }
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
     void SwitchActivePlayer()
@@ -91,11 +109,11 @@ public class GameManager : MonoBehaviour
         return;
         Transform previousPlayer = queuePlayer.Dequeue();
         turnOffComponent(previousPlayer);
-        previousPlayer.Find("Status").gameObject.SetActive(false);
+        previousPlayer.Find("Status").Find("arrow").gameObject.SetActive(false);
         queuePlayer.Enqueue(previousPlayer);
         ActivePlayer = queuePlayer.Peek();
         turnOnComponent(ActivePlayer);
-        ActivePlayer.Find("Status").gameObject.SetActive(true);
+        ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
         switchDelay = defaultSwitchDelay;
         ResetSwitchCycle();
     }
@@ -195,7 +213,6 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
     public string GetPlayerTeam(Transform player)
     {
         if (teamEven.Contains(player))
@@ -211,7 +228,6 @@ public class GameManager : MonoBehaviour
             return "Không thuộc team nào";
         }
     }
-
     public bool IsAnyQueueEmpty()
     {
         return teamEven.Count == 0 || teamOdd.Count == 0;
@@ -222,6 +238,7 @@ public class GameManager : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(switchDelay);
+            audioManger.PlaySFX(audioManger.NextTurn);
             SwitchActivePlayer();
         }
     }
@@ -246,7 +263,6 @@ public class GameManager : MonoBehaviour
         switchDelay = 2f;
         ResetSwitchCycle();
     }
-
     public string GetRemainingTeam()
     {
         if (teamEven.Count == 0 && teamOdd.Count == 0)

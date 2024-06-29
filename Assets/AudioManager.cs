@@ -11,6 +11,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip SpawBulletSound;
     public AudioClip DameSender; 
     public AudioClip HealSkill;
+    public AudioClip NextTurn;
 
 
     void Start()

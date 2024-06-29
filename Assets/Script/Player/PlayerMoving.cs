@@ -18,15 +18,16 @@ public class PlayerMoving : MonoBehaviour
     {
         Instance = this;
     }
+
     private void Start()
     {
-        
         distance = 0;
         lastPosition = transform.position;
         animator = GetComponent<Animator>();
         // Ban đầu, tắt Animator
         animator.enabled = false;
     }
+
     private void OnEnable()
     {
         time = Time.time;
@@ -67,6 +68,15 @@ public class PlayerMoving : MonoBehaviour
         Vector3 scale = transform.localScale;
         scale.x *= -1;
         transform.localScale = scale;
+
+        // Giữ nguyên hướng của phần tử con Status
+        Transform status = transform.Find("Status");
+        if (status != null)
+        {
+            Vector3 statusScale = status.localScale;
+            statusScale.x = -statusScale.x; // Đảm bảo x luôn dương
+            status.localScale = statusScale;
+        }
     }
 
     // Hàm để lấy chiều hiện tại của nhân vật
@@ -75,3 +85,4 @@ public class PlayerMoving : MonoBehaviour
         return facingRight;
     }
 }
+ 

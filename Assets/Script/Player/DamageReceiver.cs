@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-
 public class DamageReceiver : MonoBehaviour
 {
     public static DamageReceiver Instance { get; private set; }
@@ -18,7 +17,7 @@ public class DamageReceiver : MonoBehaviour
     {
         // Lấy tham chiếu tới PlayerHP
         playerHP = playertable.Find("CanvasUI").Find("BloodBar").Find("BloodBar").GetComponent<PlayerHP>();
-
+        setImage();
         // Reset HP khi bắt đầu
         ResetHP();
     }
@@ -27,6 +26,9 @@ public class DamageReceiver : MonoBehaviour
     {
         // Kiểm tra và cập nhật trạng thái của Pow image
         CheckHp();
+
+        // Kiểm tra khoảng cách với camera và xoá đối tượng nếu cần
+        CheckDistanceWithCamera();
     }
 
     private void OnEnable()
@@ -80,12 +82,28 @@ public class DamageReceiver : MonoBehaviour
     void CheckHp()
     {
         var playerAttack = transform.Find("Canon").Find("PlayerAttack").GetComponent<PlayerAttack>();
-        if (playerAttack.numofusesr>0)
+        if (playerAttack.numofusesr > 0)
         {
             playertable.Find("CanvasUI").Find("Pow").Find("Pow").GetComponent<Image>().enabled = Hp < 5;
         }
-       
-          
-     
     }
+
+    void setImage()
+    {
+        this.playertable.Find("CanvasUI").Find("Image").GetComponent<Image>().sprite = this.gameObject.GetComponent<SpriteRenderer>().sprite;
+    }
+
+   void CheckDistanceWithCamera()
+{
+    float distanceToCamera = Vector3.Distance(transform.position, Camera.main.transform.position);
+    float deleteDistance = 50f; // Khoảng cách cần để xoá đối tượng
+
+    if (distanceToCamera > deleteDistance)
+    {
+        Hp = 0; // Đặt HP về 0
+        playerHP.UpdateHP(Hp, maxHp); // Cập nhật UI nếu cần
+        Dying(); // Gọi hàm Dying để xoá đối tượng
+    }
+}
+
 }
