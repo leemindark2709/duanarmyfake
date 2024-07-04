@@ -1,17 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Tilemaps;
+﻿using UnityEngine;
 
 public class DamageSender : MonoBehaviour
 {
-    public float damage = 1;
-    [SerializeField] private AudioManager audioManager; // Biến để lưu trữ AudioSource
+    public float damage = 1f;
+    [SerializeField] private AudioManager audioManager; // Biến để lưu trữ AudioManager
+    [SerializeField] private Texture2D terrainTexture; // Thêm biến để lưu trữ texture
 
     private void Awake()
     {
-        // Gán AudioSource component
-        audioManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+        // Gán AudioManager component
+        audioManager = GameObject.Find("AudioManager")?.GetComponent<AudioManager>();
+        if (audioManager == null)
+        {
+            Debug.LogWarning("AudioManager không được tìm thấy trong cảnh.");
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -19,37 +21,46 @@ public class DamageSender : MonoBehaviour
         DamageReceiver damageReceiver = other.GetComponent<DamageReceiver>();
         if (damageReceiver != null)
         {
-            audioManager.PlaySFX(audioManager.DameSender);
+            audioManager?.PlaySFX(audioManager.DameSender);
             damageReceiver.Damaged(this.damage);
             BulletManager.instance.SpawnExplosion("ExplosionBullet", other.transform.position);
         }
 
-        // Kiểm tra xem đối tượng va chạm có phải là Tilemap hay không
-        Tilemap tilemap = other.GetComponent<Tilemap>();
-        if (tilemap != null)
+        if (other.CompareTag("map"))
         {
-            // Xử lý va chạm với Tilemap
-            Vector3 hitPosition = other.ClosestPoint(transform.position);
-            Vector3Int tilePosition = tilemap.WorldToCell(hitPosition);
-            if (tilemap.HasTile(tilePosition))
+            TextureEditor textureEditor = other.gameObject.GetComponent<TextureEditor>();
+            if (textureEditor != null)
             {
-                Debug.Log("Tile collided at: " + tilePosition);
-                tilemap.SetTile(tilePosition, null);
+                terrainTexture = textureEditor.texture; // Gán terrainTexture từ TextureEditor
+                if (terrainTexture != null)
+                {
+                    // Lấy vị trí va chạm trong thế giới
+                    Vector2 collisionPoint = other.ClosestPoint(transform.position);
+
+                    // Chuyển đổi vị trí va chạm sang tọa độ màn hình (screen position)
+                    Vector2 screenPosition = Camera.main.WorldToScreenPoint(collisionPoint);
+
+                    // Gọi phương thức Erase của TextureEditor với tọa độ màn hình
+                    textureEditor.Erase(screenPosition);
+                }
+                else
+                {
+                    Debug.LogError("Texture từ TextureEditor bị null.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Không tìm thấy component TextureEditor trên đối tượng map.");
             }
         }
 
-        // Kiểm tra xem đối tượng va chạm có tên là "map" hay không
-        if (other.gameObject.name == "map")
-        {
-            Debug.Log("Collided with map object: " + other.gameObject.name);
-            Destroy(other.gameObject); // Xóa đối tượng map
-        }
-
-        this.Despawn();
+        Despawn();
     }
 
     protected virtual void Despawn()
     {
-        Destroy(gameObject);  // Phá hủy game object hiện tại (viên đạn)
+        Destroy(gameObject); // Phá hủy đối tượng game hiện tại (viên đạn)
     }
+
+    
 }
