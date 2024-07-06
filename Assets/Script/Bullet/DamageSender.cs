@@ -42,6 +42,7 @@ public class DamageSender : MonoBehaviour
 
                     // Gọi phương thức Erase của TextureEditor với tọa độ màn hình
                     textureEditor.Erase(screenPosition);
+                    BulletManager.instance.SpawnExplosion("ExplosionBullet", collisionPoint);
                 }
                 else
                 {
