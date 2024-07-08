@@ -99,6 +99,8 @@ public class GameManager : MonoBehaviour
                 playersCreated = true; // Đánh dấu rằng các player đã được tạo
             }
         }
+        
+      
 
         // Bắt đầu chu kỳ chuyển lượt
     }
@@ -194,10 +196,12 @@ public class GameManager : MonoBehaviour
         if (teamEven.Contains(player))
         {
             teamEven.Remove(player);
+            Debug.Log(GetRemainingTeam());
         }
         else if (teamOdd.Contains(player))
         {
             teamOdd.Remove(player);
+            Debug.Log(GetRemainingTeam());
         }
 
         if (ActivePlayer == player)
@@ -217,10 +221,13 @@ public class GameManager : MonoBehaviour
     {
         if (teamEven.Contains(player))
         {
+           
             return "Team Chẵn";
         }
         else if (teamOdd.Contains(player))
         {
+          
+           
             return "Team Lẻ";
         }
         else
@@ -265,16 +272,16 @@ public class GameManager : MonoBehaviour
     }
     public string GetRemainingTeam()
     {
-        if (teamEven.Count == 0 && teamOdd.Count == 0)
+        if (teamEven.Count == 0)
         {
-            return "Cả hai team đều không có người.";
-        }
-        else if (teamEven.Count == 0)
-        {
+            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true); 
+            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").transform.Find("Team1Win").gameObject.SetActive(false);
             return "Team Lẻ win.";
         }
         else if (teamOdd.Count == 0)
         {
+            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true);
+            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").transform.Find("Team2Win").gameObject.SetActive(false);
             return "Team Chẵn win.";
         }
         return "";

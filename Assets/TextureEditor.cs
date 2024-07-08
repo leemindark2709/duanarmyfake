@@ -1,70 +1,65 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 public class TextureEditor : MonoBehaviour
 {
     public Image image;
     public Texture2D texture;
-    public Color eraseColor = new Color(0, 0, 0, 0); // Transparent color for erasing
+    public Color eraseColor = new Color(0, 0, 0, 0); // Màu trong suốt để xóa
     public int brushSize = 10;
 
-    public Texture2D copyTexture;
+    private Texture2D copyTexture;
     private RectTransform imageRectTransform;
-    private Vector2 localPoint;
-    private Vector3 lastMousePos;
     private Camera mainCamera;
-    private List<PolygonCollider2D> polygonColliders = new List<PolygonCollider2D>();
+    private List<EdgeCollider2D> edgeColliders = new List<EdgeCollider2D>();
+    private bool isUpdatingColliders = false;
 
     void Start()
     {
-        // Create a new Texture2D and copy data from the original texture
+        // Tạo một Texture2D mới và sao chép dữ liệu từ texture gốc
         copyTexture = new Texture2D(texture.width, texture.height, TextureFormat.RGBA32, false);
         Graphics.CopyTexture(texture, copyTexture);
 
-        // Create a sprite from the copied texture
+        // Tạo một sprite từ texture sao chép
         image.sprite = Sprite.Create(copyTexture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         imageRectTransform = image.rectTransform;
 
-        // Get the main camera
+        // Lấy camera chính
         mainCamera = Camera.main;
 
-        // Add the initial PolygonCollider2D
-        PolygonCollider2D initialCollider = gameObject.AddComponent<PolygonCollider2D>();
-        polygonColliders.Add(initialCollider);
+        // Thêm EdgeCollider2D ban đầu
+        EdgeCollider2D initialCollider = gameObject.AddComponent<EdgeCollider2D>();
+        edgeColliders.Add(initialCollider);
 
-        // Initial update
-        UpdateColliders();
+        // Cập nhật ban đầu
+        StartCoroutine(UpdateCollidersCoroutine());
     }
 
     private void Update()
     {
-        // Check if the left mouse button is pressed and the mouse position has changed
-        if (Input.GetMouseButton(0) && lastMousePos != Input.mousePosition && brushSize > 0)
-        {
-            if (RectTransformUtility.RectangleContainsScreenPoint(imageRectTransform, Input.mousePosition, mainCamera))
-            {
-                lastMousePos = Input.mousePosition;
-                Erase(Input.mousePosition);
-            }
-        }
+        // Xử lý va chạm với viên đạn và xóa nếu cần
     }
 
     public void Erase(Vector2 touchPosWithinRect)
     {
-        Debug.LogWarning("Hole created at position: " + touchPosWithinRect);
-        // Convert screen coordinates to local coordinates of RectTransform
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(imageRectTransform, touchPosWithinRect, mainCamera, out localPoint);
+        Debug.LogWarning("Tạo lỗ tại vị trí: " + touchPosWithinRect);
+        // Chuyển đổi tọa độ màn hình sang tọa độ cục bộ của RectTransform
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(imageRectTransform, touchPosWithinRect, mainCamera, out Vector2 localPoint);
 
-        // Convert local coordinates to texture coordinates
+        // Chuyển đổi tọa độ cục bộ sang tọa độ texture
         int px = Mathf.Clamp((int)((localPoint.x - imageRectTransform.rect.xMin) * copyTexture.width / imageRectTransform.rect.width), 0, copyTexture.width - 1);
         int py = Mathf.Clamp((int)((localPoint.y - imageRectTransform.rect.yMin) * copyTexture.height / imageRectTransform.rect.height), 0, copyTexture.height - 1);
 
-        // Erase pixels within the brush radius
+        // Xóa các pixel trong bán kính cọ
         ErasePixelsWithinRadius(px, py, brushSize, eraseColor);
 
-        // Update colliders after erasing pixels
-        UpdateColliders();
+        // Cập nhật collider sau khi xóa pixel
+        if (!isUpdatingColliders)
+        {
+            StartCoroutine(UpdateCollidersCoroutine());
+        }
     }
 
     public void ErasePixelsWithinRadius(int cx, int cy, int radius, Color color)
@@ -88,9 +83,11 @@ public class TextureEditor : MonoBehaviour
         copyTexture.Apply();
     }
 
-    private void UpdateColliders()
+    private IEnumerator UpdateCollidersCoroutine()
     {
-        // Convert texture to bitmask to identify erased regions
+        isUpdatingColliders = true;
+
+        // Chuyển đổi texture sang bitmask để xác định các vùng bị xóa
         bool[,] bitmask = new bool[copyTexture.width, copyTexture.height];
         for (int y = 0; y < copyTexture.height; y++)
         {
@@ -98,26 +95,29 @@ public class TextureEditor : MonoBehaviour
             {
                 bitmask[x, y] = copyTexture.GetPixel(x, y).a > 0;
             }
+            yield return null; // Tạm dừng để tránh đột biến khung hình
         }
 
-        // Generate clusters from the bitmask
+        // Tạo các cụm từ bitmask
         List<List<Vector2>> clusters = GenerateClustersFromBitmask(bitmask);
 
-        // Clear existing colliders
-        foreach (var collider in polygonColliders)
+        // Xóa các collider hiện có
+        foreach (var collider in edgeColliders)
         {
             Destroy(collider);
         }
-        polygonColliders.Clear();
+        edgeColliders.Clear();
 
-        // Create new colliders for each cluster
+        // Tạo các collider mới cho từng cụm
         foreach (var cluster in clusters)
         {
-            PolygonCollider2D newCollider = gameObject.AddComponent<PolygonCollider2D>();
-            polygonColliders.Add(newCollider);
-            newCollider.pathCount = 1;
-            newCollider.SetPath(0, cluster.ToArray());
+            EdgeCollider2D newCollider = gameObject.AddComponent<EdgeCollider2D>();
+            edgeColliders.Add(newCollider);
+            newCollider.points = cluster.ToArray();
+            yield return null; // Tạm dừng để tránh đột biến khung hình
         }
+
+        isUpdatingColliders = false;
     }
 
     private List<List<Vector2>> GenerateClustersFromBitmask(bool[,] bitmask)
@@ -172,18 +172,18 @@ public class TextureEditor : MonoBehaviour
 
     private List<Vector2> GenerateOutlineFromCluster(List<Vector2> cluster)
     {
-        // Placeholder: Convert cluster points to outline
+        // Chuyển các điểm cluster thành outline
         List<Vector2> outline = new List<Vector2>();
 
         foreach (var point in cluster)
         {
-            // Convert point from pixel coordinates to local coordinates of RectTransform
+            // Chuyển điểm từ tọa độ pixel sang tọa độ cục bộ của RectTransform
             float localX = (point.x / (float)copyTexture.width) * imageRectTransform.rect.width - (imageRectTransform.rect.width / 2);
             float localY = (point.y / (float)copyTexture.height) * imageRectTransform.rect.height - (imageRectTransform.rect.height / 2);
             outline.Add(new Vector2(localX, localY));
         }
 
-        // Simplify outline
+        // Đơn giản hóa outline
         outline = SimplifyOutline(outline);
 
         return outline;
