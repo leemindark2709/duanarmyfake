@@ -5,12 +5,16 @@ using UnityEngine.UI;
 
 public class ButtonOK : MonoBehaviour
 {
+    public static ButtonOK  instance;
     public PickPlayer pickPlayer;
-    private GameObject pickScene;
+    public GameObject pickScene;
     [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
+
+    public static object Instance { get; internal set; }
 
     private void Awake()
     {
+        instance = this;
         // Gán AudioSource component
         audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }

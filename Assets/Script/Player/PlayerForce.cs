@@ -29,6 +29,9 @@ public class PlayerForce : MonoBehaviour
     void Update()
     {
         fillamount=fillableImage.fillAmount;
+        if (GameManager.instance.ActivePlayer == null)
+            return;
+
         if (GameManager.instance.ActivePlayer.GetComponent<DamageReceiver>().playertable == transform.parent.parent.parent)
         {
             time = Time.time - GameManager.instance.ActivePlayer.GetComponent<PlayerMoving>().time;

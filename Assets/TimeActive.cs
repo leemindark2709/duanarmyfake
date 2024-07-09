@@ -28,6 +28,8 @@ public class TimeActive : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.instance.ActivePlayer == null)
+            return;
         if (GameManager.instance.ActivePlayer.GetComponent<DamageReceiver>().playertable == transform.parent.parent.parent)
         {
             elapsedTime += Time.deltaTime;

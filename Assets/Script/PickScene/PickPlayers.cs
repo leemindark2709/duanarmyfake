@@ -1,23 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PickPlayer : MonoBehaviour
-{   public static PickPlayer instance;
+{
+    public static PickPlayer instance;
     public string PickPlayerName = "PickPlayer";
     public Transform PlayerPicks;
     public List<Transform> ListPlayer; // Ensure this is a member variable
     public int playerCount = 0;
     public Transform ActivePlayer;
-    private int activePlayerIndex = 0;
+   public int activePlayerIndex = 0;
     public List<Transform> ListPlayerInGames;
-
     public bool isInitialized = true; // Flag to ensure Update logic runs only once
 
     private void Awake()
     {
         instance = this;
     }
+
     // Phương thức để tải các players
     public virtual void LoadPlayer()
     {
@@ -26,7 +29,6 @@ public class PickPlayer : MonoBehaviour
         foreach (Transform t in PlayerPicks)
         {
             ListPlayer.Add(t);
-            //t.gameObject.SetActive(false); // Tắt tất cả các player
         }
     }
 
@@ -38,7 +40,6 @@ public class PickPlayer : MonoBehaviour
 
     void Update()
     {
-       
         playerCount = GameManager.instance.playerCount;
 
         if (!isInitialized && playerCount != 0)
@@ -49,14 +50,11 @@ public class PickPlayer : MonoBehaviour
                 ActivePlayer.gameObject.SetActive(true); // Bật ActivePlayer
             }
 
-            if (playerCount==2)
+            if (playerCount == 2)
             {
                 ListPlayer[3].gameObject.SetActive(false);
                 ListPlayer[2].gameObject.SetActive(false);
-
             }
-           
-            
 
             isInitialized = true; // Set the flag to true to ensure this logic runs only once
         }
@@ -70,9 +68,19 @@ public class PickPlayer : MonoBehaviour
             return;
         }
 
-        ActivePlayer.GetComponent<Player>().enabled=false; // Tắt ActivePlayer hiện tại
-        activePlayerIndex = (activePlayerIndex + 1) % ListPlayer.Count; // Chuyển sang player tiếp theo, nếu vượt quá thì quay về 0
+        ActivePlayer.GetComponent<Player>().enabled = false; // Tắt ActivePlayer hiện tại
+        activePlayerIndex = (activePlayerIndex + 1) % playerCount; // Chuyển sang player tiếp theo, nếu vượt quá thì quay về 0
         ActivePlayer = ListPlayer[activePlayerIndex];
         ActivePlayer.gameObject.SetActive(true); // Bật player mới
+    }
+    public virtual void SetFalseImage()
+    {
+        PlayerPicks = GameObject.Find(PickPlayerName).transform;
+      
+        foreach (Transform t in PlayerPicks)
+        {
+            t.GetComponent<Image>().sprite= null;
+        }
+
     }
 }

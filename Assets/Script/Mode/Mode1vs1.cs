@@ -17,6 +17,7 @@ public class Mode1vs1 : Mode
         audioManger.PlaySFX(audioManger.ButtonClick);
         Debug.Log("Button clicked in Mode1vs1");
         GameManager.instance.playerCount = 2;
+        GameManager.instance.initialPlayerCount=2;
         PickPlayer.instance.isInitialized = false;
         GameObject.Find("HomeScene").SetActive(false);
     }

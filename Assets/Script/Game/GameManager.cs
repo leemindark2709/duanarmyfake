@@ -7,14 +7,15 @@ public class GameManager : MonoBehaviour
     public PickPlayer pickPlayer;
     public static GameManager instance;
     public float requiredDistance = 0f;
-    public int playerCount=0; // Số lượng Player muốn tạo
+    public int playerCount = 0; // Số lượng Player muốn tạo
+    public int initialPlayerCount = 0; // Giá trị ban đầu của playerCount
     public List<Transform> points;
     public List<Transform> pointsTable;
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     public float enableTime;
     private Queue<Transform> queuePlayer = new Queue<Transform>();
-    private Queue<Transform> queueTable = new Queue<Transform>();
+   [SerializeField] private Queue<Transform> queueTable = new Queue<Transform>();
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
     private Coroutine switchCoroutine;
@@ -26,7 +27,6 @@ public class GameManager : MonoBehaviour
     private float delayStartTime;
     [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
 
-   
     private void Awake()
     {
         instance = this;
@@ -43,13 +43,13 @@ public class GameManager : MonoBehaviour
         PlayerTableAppear.Instance.LoadCheckPoint();
         PlayerTableAppear.Instance.GetPoints(playerCount, requiredDistance, out pointsTable);
 
-        // Đặt Player đầu tiên trong hàng đợi làm ActivePlayer ban đầu
-       
+        // Lưu trữ giá trị ban đầu của playerCount
+        initialPlayerCount = playerCount;
     }
 
     private void Update()
     {
-        if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count)
+        if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count && playerCount > 0)
         {
             if (!delayStarted)
             {
@@ -61,54 +61,61 @@ public class GameManager : MonoBehaviour
             {
                 for (int i = 0; i < playerCount; i++)
                 {
-                    Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
-                    player.gameObject.SetActive(true);
-                    Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
-                    playerTable.gameObject.SetActive(true);
-                    player.GetComponent<DamageReceiver>().playertable = playerTable;
-
-                    if (player != null)
+                    if (i < pickPlayer.ListPlayerInGames.Count && i < points.Count && i < pointsTable.Count)
                     {
-                        turnOffComponent(player);
-                        player.Find("Status").Find("arrow").gameObject.SetActive(false);
-                        AddPlayerToQueue(player);
-                        players.Add(player);
+                        Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
+                        player.gameObject.SetActive(true);
+                        Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+                        AddPlayerTableToQueue(playerTable);
+                        playerTable.gameObject.SetActive(true);
+                        player.GetComponent<DamageReceiver>().playertable = playerTable;
 
-                        // Thêm player vào team chẵn hoặc lẻ
-                        if (i % 2 == 0)
+                        if (player != null)
                         {
-                            teamEven.Add(player);
-                            player.Find("Status").Find("Canvas").Find("teamolder").gameObject.SetActive(true);
-                        }
-                        else
-                        {
-                            teamOdd.Add(player);
-                            player.Find("Status").Find("Canvas").Find("teameven").gameObject.SetActive(true);
+                            turnOffComponent(player);
+                            player.Find("Status").Find("arrow").gameObject.SetActive(false);
+                            AddPlayerToQueue(player);
+                            players.Add(player);
+
+                            // Thêm player vào team chẵn hoặc lẻ
+                            if (i % 2 == 0)
+                            {
+                                teamEven.Add(player);
+                                player.Find("Status").Find("Canvas").Find("teamolder").gameObject.SetActive(true);
+                            }
+                            else
+                            {
+                                teamOdd.Add(player);
+                                player.Find("Status").Find("Canvas").Find("teameven").gameObject.SetActive(true);
+                            }
                         }
                     }
                 }
+
                 if (queuePlayer.Count > 0)
                 {
                     ActivePlayer = queuePlayer.Peek();
                     turnOnComponent(ActivePlayer);
                     ActivePlayer.Find("Status").gameObject.SetActive(true);
                     ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
-
                 }
-                switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+
+                if (queuePlayer.Count > 0)
+                {
+                    switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
+                }
+
                 playersCreated = true; // Đánh dấu rằng các player đã được tạo
             }
         }
-        
-      
-
-        // Bắt đầu chu kỳ chuyển lượt
     }
+
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
     void SwitchActivePlayer()
     {
         if (queuePlayer.Count == 0)
-        return;
+            return;
+
         Transform previousPlayer = queuePlayer.Dequeue();
         turnOffComponent(previousPlayer);
         previousPlayer.Find("Status").Find("arrow").gameObject.SetActive(false);
@@ -134,11 +141,13 @@ public class GameManager : MonoBehaviour
     {
         queuePlayer.Enqueue(player);
     }
+    protected void AddPlayerTableToQueue(Transform player)
+    {
+        queueTable.Enqueue(player);
+    }
 
     public void turnOffComponent(Transform player)
     {
-        
-
         if (player == null) return;
         var playerMoving = player.GetComponent<PlayerMoving>();
         if (playerMoving != null) playerMoving.enabled = false;
@@ -152,12 +161,11 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
-        player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = false ;
+        player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = false;
     }
 
     public void turnOnComponent(Transform player)
-    {   
-        player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
+    {
         if (player == null) return;
         enableTime = Time.time;
         var playerMoving = player.GetComponent<PlayerMoving>();
@@ -171,10 +179,13 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = true;
+
         var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
-        if (playerAttack != null) playerForce.enabled = true;
+        if (playerForce != null) playerForce.enabled = true;
+
         var timeActive = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
-        if (playerAttack != null) timeActive.enabled = true;
+        if (timeActive != null) timeActive.enabled = true;
+
         player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = true;
     }
 
@@ -217,17 +228,15 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
     public string GetPlayerTeam(Transform player)
     {
         if (teamEven.Contains(player))
         {
-           
             return "Team Chẵn";
         }
         else if (teamOdd.Contains(player))
         {
-          
-           
             return "Team Lẻ";
         }
         else
@@ -235,6 +244,7 @@ public class GameManager : MonoBehaviour
             return "Không thuộc team nào";
         }
     }
+
     public bool IsAnyQueueEmpty()
     {
         return teamEven.Count == 0 || teamOdd.Count == 0;
@@ -259,6 +269,31 @@ public class GameManager : MonoBehaviour
         switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
     }
 
+    public void RemoveAllPlayersAndTables()
+    {
+        // Xoá tất cả các player table
+        foreach (Transform table in queueTable)
+        {
+            Destroy(table.gameObject);
+        }
+        queueTable.Clear();
+        // Xoá tất cả các player
+        foreach (Transform player in players)
+        {
+            Destroy(player.gameObject);
+        }
+        players.Clear();
+
+
+        // Đặt lại trạng thái của các biến và queue
+        queuePlayer.Clear();
+        teamEven.Clear();
+        teamOdd.Clear();
+        ActivePlayer = null;
+        playersCreated = false;
+        playerCount = 0;
+    }
+
     public IEnumerator SwitchActivePlayerAfterSeconds(float seconds)
     {
         yield return new WaitForSeconds(seconds);
@@ -270,11 +305,14 @@ public class GameManager : MonoBehaviour
         switchDelay = 2f;
         ResetSwitchCycle();
     }
+
     public string GetRemainingTeam()
     {
+        if (teamEven.Count == 0 && teamOdd.Count == 0)
+            return"";
         if (teamEven.Count == 0)
         {
-            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true); 
+            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true);
             GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").transform.Find("Team1Win").gameObject.SetActive(false);
             return "Team Lẻ win.";
         }
@@ -285,5 +323,11 @@ public class GameManager : MonoBehaviour
             return "Team Chẵn win.";
         }
         return "";
+    }
+
+    // Hàm để khôi phục giá trị playerCount về giá trị ban đầu
+    public void RestoreInitialPlayerCount()
+    {
+        playerCount = initialPlayerCount;
     }
 }
