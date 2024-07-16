@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
@@ -16,7 +17,7 @@ public class PauseMenu : MonoBehaviour
     }
     private void Awake()
     {
-       
+
         audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
     // Start is called before the first frame update
@@ -27,30 +28,36 @@ public class PauseMenu : MonoBehaviour
         pauseMenu.SetActive(true);
         Time.timeScale = 0f;
 
-    } 
+    }
     public void Home()
     {
-        
+
         //SceneManager.LoadScene("") 
         audioManger.PlaySFX(audioManger.ButtonClick);
-       
+
         SceneManager.LoadScene("SampleScene");
-   
+
         Time.timeScale = 1f;
     }
     public void Remake()
     {
         audioManger.PlaySFX(audioManger.ButtonClick);
         GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(false);
+        GameManager.instance.ActivePlayer = null;
         GameManager.instance.RemoveAllPlayersAndTables();
+        GameManager.instance.delayStarted = false;
         PickPlayer.instance.ListPlayerInGames.Clear();
         GameManager.instance.RestoreInitialPlayerCount(); // Khôi phục giá trị playerCount ban đầu
-      
-
         pickScene.SetActive(true);
+
         PickPlayer.instance.SetFalseImage();
+
+        // Dừng coroutine cũ và bắt đầu lại coroutine mới
+        //GameManager.instance.ResetSwitchCycle();
+
         //Time.timeScale = 1f;
     }
+
     public void Resume()
     {
         audioManger.PlaySFX(audioManger.ButtonClick);

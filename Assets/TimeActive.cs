@@ -22,16 +22,18 @@ public class TimeActive : MonoBehaviour
         }
 
         // Khởi tạo fill amount của timerImage là 1 (tương ứng với 10 giây)
-        timerImage.fillAmount = 1f;
+       
        
     }
 
     void Update()
     {
+        
         if (GameManager.instance.ActivePlayer == null)
             return;
         if (GameManager.instance.ActivePlayer.GetComponent<DamageReceiver>().playertable == transform.parent.parent.parent)
         {
+            
             elapsedTime += Time.deltaTime;
             timerImage.fillAmount = Mathf.Clamp(1f - (elapsedTime / totalTime), 0f, 1f);
 
@@ -39,12 +41,12 @@ public class TimeActive : MonoBehaviour
             {
                 // Reset elapsedTime khi hết 10 giây
                 elapsedTime = 0f;
-                timerImage.fillAmount = 1f;
+                timerImage.fillAmount = 0f;
             }
             else if (Input.GetKeyUp(KeyCode.Space))
             {
                 this.elapsedTime = 0f;
-                timerImage.fillAmount = 1f;
+                timerImage.fillAmount = 0f;
             }
         }
     }

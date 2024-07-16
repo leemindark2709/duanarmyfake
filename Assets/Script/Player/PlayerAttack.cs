@@ -64,11 +64,14 @@ public class PlayerAttack : MonoBehaviour
             SpawnBullet(this.bulletname);
             ResetTimers();
             damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
+            damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
 
             this.bulletname = "PlayerBullet";
+         
         }
         if (Input.GetKeyUp(KeyCode.Space))
         {
+            damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
             isHoldingSpace = false;
             Debug.Log("Space button released");
             SpawnBullet(this.bulletname);
@@ -178,7 +181,7 @@ public class PlayerAttack : MonoBehaviour
         var timeActive = damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
 
         playerForce.enabled = false;
-        timeActive.timerImage.fillAmount = 1f;
+        timeActive.timerImage.fillAmount = 0f;
         timeActive.elapsedTime = 0;
         timeActive.enabled = false;
     }

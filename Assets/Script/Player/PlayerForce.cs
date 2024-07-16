@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerForce : MonoBehaviour
 {
-    public static PlayerForce instance; 
+    public static PlayerForce instance;
     public Image fillableImage; // Tham chiếu đến Image component
     public float fillSpeed = 10f; // Tốc độ lấp đầy
     public float lastFillAmount = 0f; // Giá trị fill amount cuối cùng trước khi reset
@@ -28,7 +29,7 @@ public class PlayerForce : MonoBehaviour
 
     void Update()
     {
-        fillamount=fillableImage.fillAmount;
+        fillamount = fillableImage.fillAmount;
         if (GameManager.instance.ActivePlayer == null)
             return;
 
@@ -38,7 +39,7 @@ public class PlayerForce : MonoBehaviour
             // Kiểm tra nếu phím Space được giữ
             if (Input.GetKey(KeyCode.Space))
             {
-                if ( time < 10)
+                if (time < 10)
                 {
                     fillableImage.fillAmount += Time.deltaTime * fillSpeed;
                     if (fillableImage.fillAmount > 1f)
@@ -47,16 +48,16 @@ public class PlayerForce : MonoBehaviour
                     }
 
                 }
-                else if (time >=10)
+                else if (time >= 10)
                 {
                     // Lưu giá trị fill amount hiện tại trước khi reset
                     lastFillAmount = fillableImage.fillAmount;
                     // Đặt lại fill amount về 0 khi nhả phím Space 
                     fillableImage.fillAmount = 0f;
-                    
-                }  
+
+                }
             }
-           
+
             else if (Input.GetKeyUp(KeyCode.Space))
             {
                 // Lưu giá trị fill amount hiện tại trước khi reset
@@ -64,10 +65,10 @@ public class PlayerForce : MonoBehaviour
                 // Đặt lại fill amount về 0 khi nhả phím Space
                 fillableImage.fillAmount = 0f;
             }
-           
+
 
         }
-        
+
 
     }
 
@@ -90,6 +91,6 @@ public class PlayerForce : MonoBehaviour
     }
     public void checkSpace()
     {
-     
+
     }
 }

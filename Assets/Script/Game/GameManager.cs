@@ -14,16 +14,16 @@ public class GameManager : MonoBehaviour
     public List<Transform> players;
     public Transform ActivePlayer; // Biến để theo dõi Player đang hoạt động
     public float enableTime;
-    private Queue<Transform> queuePlayer = new Queue<Transform>();
-   [SerializeField] private Queue<Transform> queueTable = new Queue<Transform>();
+    [SerializeField] private Queue<Transform> queuePlayer = new Queue<Transform>();
+    [SerializeField] private Queue<Transform> queueTable = new Queue<Transform>();
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
     private Coroutine switchCoroutine;
     private float defaultSwitchDelay = 10f;
     private float switchDelay = 10f;
-    private bool playersCreated = false; // Biến cờ để theo dõi việc tạo player
+    public bool playersCreated = false; // Biến cờ để theo dõi việc tạo player
 
-    private bool delayStarted = false;
+    public bool delayStarted = false;
     private float delayStartTime;
     [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
 
@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviour
                 delayStartTime = Time.time;
             }
 
-            if (Time.time >= delayStartTime + 5f)
+            if (Time.time >= delayStartTime + 3f)
             {
                 for (int i = 0; i < playerCount; i++)
                 {
@@ -66,8 +66,9 @@ public class GameManager : MonoBehaviour
                         Transform player = SpawnPlayer(pickPlayer.ListPlayerInGames[i].transform.name, points[i]);
                         player.gameObject.SetActive(true);
                         Transform playerTable = SpawnPlayerTable("PlayerTable", pointsTable[i]);
+                        playerTable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
                         AddPlayerTableToQueue(playerTable);
-                        playerTable.gameObject.SetActive(true);
+                       playerTable.gameObject.SetActive(true);
                         player.GetComponent<DamageReceiver>().playertable = playerTable;
 
                         if (player != null)
@@ -92,16 +93,22 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                if (queuePlayer.Count > 0)
+                if (queuePlayer.Count > 1)
                 {
                     ActivePlayer = queuePlayer.Peek();
-                    turnOnComponent(ActivePlayer);
-                    ActivePlayer.Find("Status").gameObject.SetActive(true);
-                    ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
+                    if (ActivePlayer != null)
+                    {
+                        turnOnComponent(ActivePlayer);
+                        ActivePlayer.Find("Status").gameObject.SetActive(true);
+                        ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
+
+                    }
+
                 }
 
-                if (queuePlayer.Count > 0)
+                if (queuePlayer.Count > 1 && teamEven.Count > 0 && teamOdd.Count > 0)
                 {
+
                     switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
                 }
 
@@ -119,10 +126,19 @@ public class GameManager : MonoBehaviour
         Transform previousPlayer = queuePlayer.Dequeue();
         turnOffComponent(previousPlayer);
         previousPlayer.Find("Status").Find("arrow").gameObject.SetActive(false);
-        queuePlayer.Enqueue(previousPlayer);
+
+        StartCoroutine(DelayedSetActivePlayer(previousPlayer));
+    }
+
+    IEnumerator DelayedSetActivePlayer(Transform player)
+    {
+        yield return new WaitForSeconds(2f);
+
+        queuePlayer.Enqueue(player);
         ActivePlayer = queuePlayer.Peek();
         turnOnComponent(ActivePlayer);
         ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
+
         switchDelay = defaultSwitchDelay;
         ResetSwitchCycle();
     }
@@ -162,10 +178,14 @@ public class GameManager : MonoBehaviour
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = false;
         player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = false;
+        var timeActive = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
+        player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
+        if (playerAttack != null) timeActive.enabled = false;
     }
 
     public void turnOnComponent(Transform player)
     {
+        player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = true;
         if (player == null) return;
         enableTime = Time.time;
         var playerMoving = player.GetComponent<PlayerMoving>();
@@ -179,13 +199,10 @@ public class GameManager : MonoBehaviour
 
         var playerAttack = player.GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null) playerAttack.enabled = true;
-
         var playerForce = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
-        if (playerForce != null) playerForce.enabled = true;
-
+        if (playerAttack != null) playerForce.enabled = true;
         var timeActive = player.GetComponent<DamageReceiver>().playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
-        if (timeActive != null) timeActive.enabled = true;
-
+        if (playerAttack != null) timeActive.enabled = true;
         player.GetComponent<DamageReceiver>().playertable.Find("panel").GetComponent<SpriteRenderer>().enabled = true;
     }
 
@@ -215,18 +232,18 @@ public class GameManager : MonoBehaviour
             Debug.Log(GetRemainingTeam());
         }
 
-        if (ActivePlayer == player)
-        {
-            if (queuePlayer.Count > 0)
-            {
-                ActivePlayer = queuePlayer.Peek();
-                turnOnComponent(ActivePlayer);
-            }
-            else
-            {
-                ActivePlayer = null;
-            }
-        }
+        //if (ActivePlayer == player)
+        //{
+        //    if (queuePlayer.Count > 0)
+        //    {
+        //        ActivePlayer = queuePlayer.Peek();
+        //        turnOnComponent(ActivePlayer);
+        //    }
+        //    else
+        //    {
+        //        ActivePlayer = null;
+        //    }
+        //}
     }
 
     public string GetPlayerTeam(Transform player)
@@ -252,9 +269,19 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator SwitchActivePlayerCycle()
     {
+        Debug.Log("ok" + queuePlayer.Count);
         while (true)
         {
             yield return new WaitForSeconds(switchDelay);
+            if (IsAnyQueueEmpty())
+            {
+                StopCoroutine(switchCoroutine);
+                if (ActivePlayer != null)
+                {
+                    turnOffComponent(ActivePlayer);
+                }
+                yield break;
+            }
             audioManger.PlaySFX(audioManger.NextTurn);
             SwitchActivePlayer();
         }
@@ -284,12 +311,11 @@ public class GameManager : MonoBehaviour
         }
         players.Clear();
 
-
         // Đặt lại trạng thái của các biến và queue
-        queuePlayer.Clear();
+        queuePlayer = new Queue<Transform>();
         teamEven.Clear();
         teamOdd.Clear();
-        ActivePlayer = null;
+        //ActivePlayer = null;
         playersCreated = false;
         playerCount = 0;
     }
@@ -309,7 +335,7 @@ public class GameManager : MonoBehaviour
     public string GetRemainingTeam()
     {
         if (teamEven.Count == 0 && teamOdd.Count == 0)
-            return"";
+            return "";
         if (teamEven.Count == 0)
         {
             GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true);

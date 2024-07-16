@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,22 +11,26 @@ public class AudioManager : MonoBehaviour
     public AudioClip SpawBulletSound;
     public AudioClip DameSender; 
     public AudioClip HealSkill;
-    public AudioClip NextTurn;
+    public AudioClip NextTurn; 
+    public AudioClip Ready;
+    public AudioClip Go;
+    public AudioClip BackgroundMusic;            
 
 
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    
     public void PlaySFX(AudioClip sfxClip)
     {
         this.vfxAudioSourse.clip = sfxClip;
         vfxAudioSourse.PlayOneShot(sfxClip);
+    }
+    public void PlayBackgroundMusic()
+    {
+        musicAudioSource.clip = BackgroundMusic;
+        musicAudioSource.loop = true; // Ensure the music loops
+        musicAudioSource.Play();
+    }
+    public void StopBackgroundMusic()
+    {
+        musicAudioSource.Stop();
     }
 }
