@@ -81,25 +81,29 @@ public class ButtonOK : MonoBehaviour
     // Method to handle button click event
     public void OnButtonClick()
     {
+       
         if (audioManager != null)
         {
             audioManager.PlaySFX(audioManager.ButtonClick);
         }
 
-        if (pickPlayer != null)
+        if (pickPlayer != null&& pickPlayer.ActivePlayer.GetComponent<Player>().player!=null)
         {
             pickPlayer.ListPlayerInGames.Add(pickPlayer.ActivePlayer.GetComponent<Player>().player);
             pickPlayer.NextPlayer();
 
             if (pickPlayer.ListPlayerInGames.Count == GameManager.instance.playerCount)
             {
+                 //SpawnMap();
                 ReadyGo.SetActive(true);
                 StartCoroutine(ShowReadyGoSequence());
+
             }
         }
        
         
     }
+   
 
     private IEnumerator ShowReadyGoSequence()
     {

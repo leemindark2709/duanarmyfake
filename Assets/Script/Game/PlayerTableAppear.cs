@@ -43,41 +43,29 @@ public class PlayerTableAppear : MonoBehaviour
             return;
         }
 
-        List<Transform> remainingCheckPoints = new List<Transform>(CheckPoints);
-        Transform currentPoint = remainingCheckPoints[Random.Range(0, remainingCheckPoints.Count)];
-        points.Add(currentPoint);
-        remainingCheckPoints.Remove(currentPoint);
-
-        while (points.Count < pointCount)
+        for (int i = 0; i < CheckPoints.Count; i++)
         {
-            List<Transform> validPoints = new List<Transform>();
-            foreach (Transform checkpoint in remainingCheckPoints)
-            {
-                bool isValid = true;
-                foreach (Transform point in points)
-                {
-                    if (Vector3.Distance(point.position, checkpoint.position) < pointRequiredDistance)
-                    {
-                        isValid = false;
-                        break;
-                    }
-                }
+            Transform currentPoint = CheckPoints[i];
 
-                if (isValid)
+            // Check if the current point maintains the required distance from all previously added points
+            bool isValid = true;
+            foreach (Transform point in points)
+            {
+                if (Vector3.Distance(point.position, currentPoint.position) < requiredDistance)
                 {
-                    validPoints.Add(checkpoint);
+                    isValid = false;
+                    break;
                 }
             }
 
-            if (validPoints.Count > 0)
+            if (isValid)
             {
-                currentPoint = validPoints[Random.Range(0, validPoints.Count)];
                 points.Add(currentPoint);
-                remainingCheckPoints.Remove(currentPoint);
             }
-            else
+
+            // Stop if we've collected enough points
+            if (points.Count == pointCount)
             {
-                Debug.LogError("No valid checkpoint found with the required distance");
                 break;
             }
         }
@@ -87,4 +75,5 @@ public class PlayerTableAppear : MonoBehaviour
             Debug.LogError("Could not find enough valid checkpoints with the required distance");
         }
     }
+
 }

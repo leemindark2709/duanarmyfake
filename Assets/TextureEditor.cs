@@ -13,8 +13,8 @@ public class TextureEditor : MonoBehaviour
     private Texture2D copyTexture;
     private RectTransform imageRectTransform;
     private Camera mainCamera;
-    private List<EdgeCollider2D> edgeColliders = new List<EdgeCollider2D>();
-    private bool isUpdatingColliders = false;
+    private PolygonCollider2D polygonCollider;
+    private bool isUpdatingCollider = false;
 
     void Start()
     {
@@ -29,17 +29,16 @@ public class TextureEditor : MonoBehaviour
         // Lấy camera chính
         mainCamera = Camera.main;
 
-        // Thêm EdgeCollider2D ban đầu
-        EdgeCollider2D initialCollider = gameObject.AddComponent<EdgeCollider2D>();
-        edgeColliders.Add(initialCollider);
+        // Thêm PolygonCollider2D ban đầu
+        polygonCollider = gameObject.AddComponent<PolygonCollider2D>();
 
         // Cập nhật ban đầu
-        StartCoroutine(UpdateCollidersCoroutine());
+        StartCoroutine(UpdateColliderCoroutine());
     }
 
     private void Update()
     {
-        // Xử lý va chạm với viên đạn và xóa nếu cần
+        // Đoạn mã này có thể để kiểm tra va chạm với viên đạn và gọi hàm Erase nếu cần
     }
 
     public void Erase(Vector2 touchPosWithinRect)
@@ -56,9 +55,9 @@ public class TextureEditor : MonoBehaviour
         ErasePixelsWithinRadius(px, py, brushSize, eraseColor);
 
         // Cập nhật collider sau khi xóa pixel
-        if (!isUpdatingColliders)
+        if (!isUpdatingCollider)
         {
-            StartCoroutine(UpdateCollidersCoroutine());
+            StartCoroutine(UpdateColliderCoroutine());
         }
     }
 
@@ -83,11 +82,30 @@ public class TextureEditor : MonoBehaviour
         copyTexture.Apply();
     }
 
-    private IEnumerator UpdateCollidersCoroutine()
+    private IEnumerator UpdateColliderCoroutine()
     {
-        isUpdatingColliders = true;
+        isUpdatingCollider = true;
 
-        // Chuyển đổi texture sang bitmask để xác định các vùng bị xóa
+        // Xác định các điểm viền của vùng có màu sắc
+        List<Vector2> outline = GetTextureOutline();
+
+        // Cập nhật PolygonCollider2D
+        polygonCollider.pathCount = 0;
+        if (outline.Count > 0)
+        {
+            polygonCollider.pathCount = 1;
+            polygonCollider.SetPath(0, outline.ToArray());
+        }
+
+        isUpdatingCollider = false;
+        yield return null;
+    }
+
+    private List<Vector2> GetTextureOutline()
+    {
+        List<Vector2> outline = new List<Vector2>();
+
+        // Tạo một bitmask từ texture để xác định vùng có màu sắc
         bool[,] bitmask = new bool[copyTexture.width, copyTexture.height];
         for (int y = 0; y < copyTexture.height; y++)
         {
@@ -95,112 +113,63 @@ public class TextureEditor : MonoBehaviour
             {
                 bitmask[x, y] = copyTexture.GetPixel(x, y).a > 0;
             }
-            yield return null; // Tạm dừng để tránh đột biến khung hình
         }
 
-        // Tạo các cụm từ bitmask
-        List<List<Vector2>> clusters = GenerateClustersFromBitmask(bitmask);
-
-        // Xóa các collider hiện có
-        foreach (var collider in edgeColliders)
+        // Xác định các điểm viền từ bitmask
+        for (int y = 0; y < copyTexture.height; y++)
         {
-            Destroy(collider);
-        }
-        edgeColliders.Clear();
-
-        // Tạo các collider mới cho từng cụm
-        foreach (var cluster in clusters)
-        {
-            EdgeCollider2D newCollider = gameObject.AddComponent<EdgeCollider2D>();
-            edgeColliders.Add(newCollider);
-            newCollider.points = cluster.ToArray();
-            yield return null; // Tạm dừng để tránh đột biến khung hình
-        }
-
-        isUpdatingColliders = false;
-    }
-
-    private List<List<Vector2>> GenerateClustersFromBitmask(bool[,] bitmask)
-    {
-        int width = bitmask.GetLength(0);
-        int height = bitmask.GetLength(1);
-        bool[,] visited = new bool[width, height];
-        List<List<Vector2>> clusters = new List<List<Vector2>>();
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < copyTexture.width; x++)
             {
-                if (bitmask[x, y] && !visited[x, y])
+                if (bitmask[x, y] && IsBorderPixel(bitmask, x, y))
                 {
-                    List<Vector2> cluster = new List<Vector2>();
-                    FloodFill(bitmask, visited, x, y, cluster);
-                    clusters.Add(GenerateOutlineFromCluster(cluster));
+                    float localX = (x / (float)copyTexture.width) * imageRectTransform.rect.width - (imageRectTransform.rect.width / 2);
+                    float localY = (y / (float)copyTexture.height) * imageRectTransform.rect.height - (imageRectTransform.rect.height / 2);
+                    outline.Add(new Vector2(localX, localY));
                 }
             }
         }
 
-        return clusters;
+        return SimplifyOutline(outline);
     }
 
-    private void FloodFill(bool[,] bitmask, bool[,] visited, int x, int y, List<Vector2> cluster)
+    private bool IsBorderPixel(bool[,] bitmask, int x, int y)
     {
         int width = bitmask.GetLength(0);
         int height = bitmask.GetLength(1);
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        queue.Enqueue(new Vector2Int(x, y));
-        visited[x, y] = true;
 
-        while (queue.Count > 0)
+        // Kiểm tra nếu pixel hiện tại có ít nhất một pixel xung quanh không có màu sắc
+        for (int i = -1; i <= 1; i++)
         {
-            Vector2Int point = queue.Dequeue();
-            cluster.Add(new Vector2(point.x, point.y));
-
-            foreach (var dir in new Vector2Int[] { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0) })
+            for (int j = -1; j <= 1; j++)
             {
-                int nx = point.x + dir.x;
-                int ny = point.y + dir.y;
+                int nx = x + i;
+                int ny = y + j;
 
-                if (nx >= 0 && nx < width && ny >= 0 && ny < height && bitmask[nx, ny] && !visited[nx, ny])
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height && !(i == 0 && j == 0))
                 {
-                    queue.Enqueue(new Vector2Int(nx, ny));
-                    visited[nx, ny] = true;
+                    if (!bitmask[nx, ny])
+                    {
+                        return true;
+                    }
                 }
             }
         }
-    }
-
-    private List<Vector2> GenerateOutlineFromCluster(List<Vector2> cluster)
-    {
-        // Chuyển các điểm cluster thành outline
-        List<Vector2> outline = new List<Vector2>();
-
-        foreach (var point in cluster)
-        {
-            // Chuyển điểm từ tọa độ pixel sang tọa độ cục bộ của RectTransform
-            float localX = (point.x / (float)copyTexture.width) * imageRectTransform.rect.width - (imageRectTransform.rect.width / 2);
-            float localY = (point.y / (float)copyTexture.height) * imageRectTransform.rect.height - (imageRectTransform.rect.height / 2);
-            outline.Add(new Vector2(localX, localY));
-        }
-
-        // Đơn giản hóa outline
-        outline = SimplifyOutline(outline);
-
-        return outline;
+        return false;
     }
 
     private List<Vector2> SimplifyOutline(List<Vector2> outlinePoints)
     {
         List<Vector2> simplifiedOutline = new List<Vector2>();
-        Vector2 lastPoint = outlinePoints[0];
-        simplifiedOutline.Add(lastPoint);
+        if (outlinePoints.Count == 0)
+            return simplifiedOutline;
+
+        simplifiedOutline.Add(outlinePoints[0]);
 
         for (int i = 1; i < outlinePoints.Count; i++)
         {
-            if (Vector2.Distance(lastPoint, outlinePoints[i]) > 0.1f)
+            if (Vector2.Distance(simplifiedOutline[simplifiedOutline.Count - 1], outlinePoints[i]) > 0.1f)
             {
-                lastPoint = outlinePoints[i];
-                simplifiedOutline.Add(lastPoint);
+                simplifiedOutline.Add(outlinePoints[i]);
             }
         }
 

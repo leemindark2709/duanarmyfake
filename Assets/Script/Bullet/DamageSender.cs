@@ -41,7 +41,7 @@ public class DamageSender : MonoBehaviour
                     Vector2 screenPosition = Camera.main.WorldToScreenPoint(collisionPoint);
 
                     // Gọi phương thức Erase của TextureEditor với tọa độ màn hình
-                    textureEditor.Erase(screenPosition);
+                    //textureEditor.Erase(screenPosition);
                     BulletManager.instance.SpawnExplosion("ExplosionBullet", collisionPoint);
                 }
                 else

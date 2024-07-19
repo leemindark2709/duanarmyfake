@@ -14,7 +14,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip NextTurn; 
     public AudioClip Ready;
     public AudioClip Go;
-    public AudioClip BackgroundMusic;            
+    public AudioClip BackgroundMusic;   
+    public AudioClip Win;            
 
 
     

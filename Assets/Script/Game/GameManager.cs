@@ -37,28 +37,42 @@ public class GameManager : MonoBehaviour
     {
         pickPlayer = FindObjectOfType<PickPlayer>();
         players = new List<Transform>();
-        PlayerAppear.Instance.LoadCheckPoint();
-        PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
         PlayerTableManager.Instance.LoadPlayer();
         PlayerTableAppear.Instance.LoadCheckPoint();
         PlayerTableAppear.Instance.GetPoints(playerCount, requiredDistance, out pointsTable);
+        
 
         // Lưu trữ giá trị ban đầu của playerCount
         initialPlayerCount = playerCount;
+    }
+    public void GetPointToSpaw()
+    {
+        PlayerAppear.Instance.LoadCheckPoint();
+        PlayerAppear.Instance.GetPoints(playerCount, requiredDistance, out points);
+       
     }
 
     private void Update()
     {
         if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count && playerCount > 0)
         {
+          
+
+
             if (!delayStarted)
             {
+                if (!playersCreated)
+                {
+                    MapManager.Instance.SpawnMap(); // Gọi phương thức spawn map
+                   
+                }
                 delayStarted = true;
                 delayStartTime = Time.time;
             }
-
             if (Time.time >= delayStartTime + 3f)
             {
+                GetPointToSpaw(); // Lấy điểm spawn cho players
+
                 for (int i = 0; i < playerCount; i++)
                 {
                     if (i < pickPlayer.ListPlayerInGames.Count && i < points.Count && i < pointsTable.Count)
@@ -111,6 +125,7 @@ public class GameManager : MonoBehaviour
 
                     switchCoroutine = StartCoroutine(SwitchActivePlayerCycle());
                 }
+
 
                 playersCreated = true; // Đánh dấu rằng các player đã được tạo
             }
@@ -315,6 +330,7 @@ public class GameManager : MonoBehaviour
         queuePlayer = new Queue<Transform>();
         teamEven.Clear();
         teamOdd.Clear();
+        points.Clear();
         //ActivePlayer = null;
         playersCreated = false;
         playerCount = 0;
@@ -339,13 +355,15 @@ public class GameManager : MonoBehaviour
         if (teamEven.Count == 0)
         {
             GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true);
-            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").transform.Find("Team1Win").gameObject.SetActive(false);
+           TeamWinManager.instance.Team1Win.SetActive(false);
+            audioManger.PlaySFX(audioManger.Win);
             return "Team Lẻ win.";
         }
         else if (teamOdd.Count == 0)
         {
             GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").gameObject.SetActive(true);
-            GameObject.Find("Teamwin").transform.Find("Canvas").transform.Find("Panel").transform.Find("Team2Win").gameObject.SetActive(false);
+            TeamWinManager.instance.Team2Win.SetActive(false);
+            audioManger.PlaySFX(audioManger.Win);
             return "Team Chẵn win.";
         }
         return "";

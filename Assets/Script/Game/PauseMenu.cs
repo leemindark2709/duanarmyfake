@@ -7,6 +7,9 @@ using UnityEngine;
 public class PauseMenu : MonoBehaviour
 {
     [SerializeField] GameObject pauseMenu;
+    [SerializeField] GameObject darkpanel;
+    [SerializeField] GameObject pause;
+
 
     public GameObject pickScene;
     [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
@@ -26,6 +29,10 @@ public class PauseMenu : MonoBehaviour
         audioManger.PlaySFX(audioManger.ButtonClick);
 
         pauseMenu.SetActive(true);
+        darkpanel.SetActive(true);
+        pause.SetActive(false);
+
+
         Time.timeScale = 0f;
 
     }
@@ -49,6 +56,8 @@ public class PauseMenu : MonoBehaviour
         PickPlayer.instance.ListPlayerInGames.Clear();
         GameManager.instance.RestoreInitialPlayerCount(); // Khôi phục giá trị playerCount ban đầu
         pickScene.SetActive(true);
+        TeamWinManager.instance.Team1Win.SetActive(true);
+        TeamWinManager.instance.Team2Win.SetActive(true);
 
         PickPlayer.instance.SetFalseImage();
 
@@ -61,8 +70,9 @@ public class PauseMenu : MonoBehaviour
     public void Resume()
     {
         audioManger.PlaySFX(audioManger.ButtonClick);
-
+        darkpanel.SetActive(false);
         pauseMenu.SetActive(false);
+        pause.SetActive(true);
         Time.timeScale = 1f;
     }
 
