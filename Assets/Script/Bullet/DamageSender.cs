@@ -16,7 +16,7 @@ public class DamageSender : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void  OnTriggerEnter2D(Collider2D other)
     {
         DamageReceiver damageReceiver = other.GetComponent<DamageReceiver>();
         if (damageReceiver != null)
@@ -28,33 +28,15 @@ public class DamageSender : MonoBehaviour
 
         if (other.CompareTag("map"))
         {
-            TextureEditor textureEditor = other.gameObject.GetComponent<TextureEditor>();
-            if (textureEditor != null)
-            {
-                terrainTexture = textureEditor.texture; // Gán terrainTexture từ TextureEditor
-                if (terrainTexture != null)
-                {
-                    // Lấy vị trí va chạm trong thế giới
+
                     Vector2 collisionPoint = other.ClosestPoint(transform.position);
 
-                    // Chuyển đổi vị trí va chạm sang tọa độ màn hình (screen position)
                     Vector2 screenPosition = Camera.main.WorldToScreenPoint(collisionPoint);
 
-                    // Gọi phương thức Erase của TextureEditor với tọa độ màn hình
-                    //textureEditor.Erase(screenPosition);
+                    audioManager?.PlaySFX(audioManager.DameSender);
                     BulletManager.instance.SpawnExplosion("ExplosionBullet", collisionPoint);
-                }
-                else
-                {
-                    Debug.LogError("Texture từ TextureEditor bị null.");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Không tìm thấy component TextureEditor trên đối tượng map.");
-            }
-        }
 
+            }
         Despawn();
     }
 

@@ -1,46 +1,56 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerAttack : MonoBehaviour
 {
     [SerializeField] private bool isHoldingSpace = false;
-    public string bulletname = "PlayerBullet";
+    public string bulletname;
+    private string initialBulletName;
     public string skillName;
     public int numofusesq;
     public int numofusese;
     public int numofusesr;
     public float hp;
-    private DamageReceiver damageReceiver;
+    public DamageReceiver damageReceiver;
     private SkillInGame skillInGame;
     private Image healImage;
     private Image flashImage;
     private Image powImage;
+    private TextMeshProUGUI textNumofuseq;
+    private TextMeshProUGUI textNumofusee;
     public float time;
-    [SerializeField] private AudioManager audioManger; // Biến để lưu trữ AudioSource
+    [SerializeField] private AudioManager audioManager; // Corrected the typo
 
     private void Awake()
     {
+
         // Gán AudioSource component
-        audioManger = GameObject.Find("AudioManager").GetComponent<AudioManager>();
+        audioManager = GameObject.Find("AudioManager").GetComponent<AudioManager>();
     }
 
     void Start()
     {
+
         // Lấy các component cần thiết và lưu trữ trong biến
         damageReceiver = transform.parent.parent.GetComponent<DamageReceiver>();
         skillInGame = transform.parent.parent.GetComponent<SkillInGame>();
-
+        skillInGame.numofusese = 5;
+        skillInGame.numofusesq = 2;
+        skillInGame.numofusesr = 1;
         hp = damageReceiver.getHp();
         numofusese = skillInGame.numofusese;
         numofusesq = skillInGame.numofusesq;
         numofusesr = skillInGame.numofusesr;
 
+        textNumofuseq = damageReceiver.playertable.Find("CanvasUI").Find("numofuseq").GetComponent<TextMeshProUGUI>();
+        textNumofusee = damageReceiver.playertable.Find("CanvasUI").Find("numofusee").GetComponent<TextMeshProUGUI>();
         healImage = damageReceiver.playertable.Find("CanvasUI").Find("Heal").Find("Heal").GetComponent<Image>();
         flashImage = damageReceiver.playertable.Find("CanvasUI").Find("Flash").Find("Flash").GetComponent<Image>();
         powImage = damageReceiver.playertable.Find("CanvasUI").Find("Pow").Find("Pow").GetComponent<Image>();
 
-        this.bulletname = "PlayerBullet";
+        initialBulletName = bulletname;
 
         // Kiểm tra trạng thái ban đầu của máu để cập nhật powImage
         CheckHp();
@@ -48,35 +58,40 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
+        textNumofuseq.text = numofusesq.ToString();
+        textNumofusee.text = numofusese.ToString();
         time = Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time;
         hp = damageReceiver.getHp();
 
-        if (Input.GetKey(KeyCode.Space) && (Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time) < 10)
+        if (Input.GetKey(KeyCode.Space))
         {
-            isHoldingSpace = true;
-            Debug.Log("Space button pressed");
-        }
-        if (Input.GetKey(KeyCode.Space) && (Time.time - transform.parent.parent.GetComponent<PlayerMoving>().time) >= 10)
-        {
-            isHoldingSpace = false;
-            Debug.Log("Space button released");
+            if (time < 10)
+            {
+                isHoldingSpace = true;
+                Debug.Log("Space button pressed");
+            }
+            else
+            {
+                isHoldingSpace = false;
+                Debug.Log("Space button released");
 
-            SpawnBullet(this.bulletname);
-            ResetTimers();
-            damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>().enabled = false;
-            damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
+                SpawnBullet(bulletname);
+                ResetTimers();
+                DisablePlayerForce();
+                ResetTimerImage();
 
-            this.bulletname = "PlayerBullet";
-         
+                bulletname = initialBulletName;
+            }
         }
+
         if (Input.GetKeyUp(KeyCode.Space))
         {
-            damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>().timerImage.fillAmount = 0f;
+            ResetTimerImage();
             isHoldingSpace = false;
             Debug.Log("Space button released");
-            SpawnBullet(this.bulletname);
+            SpawnBullet(bulletname);
             ResetTimers();
-            this.bulletname = "PlayerBullet";
+            bulletname = initialBulletName;
         }
 
         if (Input.GetKeyDown(KeyCode.Q) && numofusesq > 0)
@@ -100,12 +115,13 @@ public class PlayerAttack : MonoBehaviour
 
     void UseSkillQ()
     {
-        audioManger.PlaySFX(audioManger.HealSkill);
+        audioManager.PlaySFX(audioManager.HealSkill);
         Debug.Log("Q button pressed");
         SpawnSkill("Heal");
         numofusesq -= 1;
-        skillInGame.numofusesq = numofusesq;
 
+        skillInGame.numofusesq = numofusesq;
+        textNumofuseq.text = numofusesq.ToString();
         if (numofusesq == 0)
         {
             healImage.enabled = false;
@@ -114,11 +130,12 @@ public class PlayerAttack : MonoBehaviour
 
     void UseSkillE()
     {
+        audioManager.PlaySFX(audioManager.Flash);
         Debug.Log("E button pressed");
         bulletname = "PlayerBulletFlash";
         numofusese -= 1;
         skillInGame.numofusese = numofusese;
-
+        textNumofusee.text = numofusese.ToString();
         if (numofusese == 0)
         {
             flashImage.enabled = false;
@@ -127,6 +144,7 @@ public class PlayerAttack : MonoBehaviour
 
     void UseSkillR()
     {
+        audioManager.PlaySFX(audioManager.Pow);
         Debug.Log("R button pressed");
         Debug.Log("Current HP: " + hp);
         if (hp < 5 && numofusesr > 0)
@@ -139,12 +157,12 @@ public class PlayerAttack : MonoBehaviour
         powImage.enabled = false;
     }
 
-    void SpawnBullet(string bulletname)
+    void SpawnBullet(string bulletName)
     {
         Debug.Log("ok");
-        audioManger.PlaySFX(audioManger.SpawBulletSound);
+        audioManager.PlaySFX(audioManager.SpawBulletSound);
         Vector3 spawnPosition = transform.position;
-        Transform newBullet = BulletManager.instance.SpawnBullet(bulletname, spawnPosition, transform.parent.parent);
+        Transform newBullet = BulletManager.instance.SpawnBullet(bulletName, spawnPosition, transform.parent.parent);
 
         GameManager.instance.GetComponent<GameManager>().turnOffComponent(transform.parent.parent);
         newBullet.gameObject.SetActive(true);
@@ -163,7 +181,7 @@ public class PlayerAttack : MonoBehaviour
         if (newSkill != null)
         {
             newSkill.gameObject.SetActive(true);
-            Debug.Log("Skill spawned: " + skillName);
+            Debug.Log("Skill spawned: " + skill);
         }
     }
 
@@ -184,5 +202,17 @@ public class PlayerAttack : MonoBehaviour
         timeActive.timerImage.fillAmount = 0f;
         timeActive.elapsedTime = 0;
         timeActive.enabled = false;
+    }
+
+    void DisablePlayerForce()
+    {
+        var playerForce = damageReceiver.playertable.Find("CanvasUI").Find("Force").Find("PlayerForce").GetComponent<PlayerForce>();
+        playerForce.enabled = false;
+    }
+
+    void ResetTimerImage()
+    {
+        var timeActive = damageReceiver.playertable.Find("CanvasUI").Find("TimeActive").Find("Time").GetComponent<TimeActive>();
+        timeActive.timerImage.fillAmount = 0f;
     }
 }

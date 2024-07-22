@@ -6,7 +6,7 @@ public class DamageReceiver : MonoBehaviour
     public Transform playertable;
     public PlayerHP playerHP;
     public float Hp = 0;
-    public float maxHp = 10;
+    public float maxHp = 15;
 
     private void Awake()
     {

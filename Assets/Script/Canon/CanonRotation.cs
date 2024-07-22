@@ -7,7 +7,7 @@ using UnityEngine;
 public class CanonRotation : MonoBehaviour
 {
     public static CanonRotation Instance;
-    public float rotationSpeed = 100f;
+    public float rotationSpeed = 50f;
     public bool facingRight = true;
     public float currentRotationAngle;
 

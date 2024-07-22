@@ -12,7 +12,8 @@ public class PlayerMoving : MonoBehaviour
     private Vector3 lastPosition;
     public float time;
 
-    public object Tỉme { get; internal set; }
+    private AudioManager audioManager;
+    private bool isMoving;
 
     private void Awake()
     {
@@ -24,8 +25,10 @@ public class PlayerMoving : MonoBehaviour
         distance = 0;
         lastPosition = transform.position;
         animator = GetComponent<Animator>();
-        // Ban đầu, tắt Animator
+        // Initially, disable the Animator
         animator.enabled = false;
+        audioManager = FindObjectOfType<AudioManager>();
+        isMoving = false;
     }
 
     private void OnEnable()
@@ -37,17 +40,31 @@ public class PlayerMoving : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
 
-        // Kiểm tra xem nhân vật có đang di chuyển không
+        // Check if the player is moving
         if (Mathf.Abs(horizontalInput) > 0)
         {
-            // Bật Animator nếu chưa được bật
+            // Enable Animator if not already enabled
             if (!animator.enabled)
                 animator.enabled = true;
+
+            // Play moving sound if not already playing
+            if (!isMoving)
+            {
+                audioManager.MovingSound();
+                isMoving = true;
+            }
         }
         else
         {
-            // Tắt Animator nếu nhân vật dừng lại
+            // Disable Animator if the player stops
             animator.enabled = false;
+
+            // Stop moving sound if playing
+            if (isMoving)
+            {
+                audioManager.StopBackgroundMusic();
+                isMoving = false;
+            }
         }
 
         if (horizontalInput < 0 && facingRight || horizontalInput > 0 && !facingRight)
@@ -85,4 +102,3 @@ public class PlayerMoving : MonoBehaviour
         return facingRight;
     }
 }
- 

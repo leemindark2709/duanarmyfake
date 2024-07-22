@@ -8,7 +8,8 @@ public class PauseMenu : MonoBehaviour
 {
     [SerializeField] GameObject pauseMenu;
     [SerializeField] GameObject darkpanel;
-    [SerializeField] GameObject pause;
+    [SerializeField] GameObject pause; 
+    [SerializeField] GameObject reamake;
 
 
     public GameObject pickScene;
@@ -56,6 +57,18 @@ public class PauseMenu : MonoBehaviour
         PickPlayer.instance.ListPlayerInGames.Clear();
         GameManager.instance.RestoreInitialPlayerCount(); // Khôi phục giá trị playerCount ban đầu
         pickScene.SetActive(true);
+        pauseMenu.SetActive(false);
+        if (darkpanel!=null)
+        {
+            darkpanel.SetActive(false);
+        }
+        if (pause!=null)
+        {
+            pause.SetActive(true);
+        }
+        PickPlayer.instance.setnoneplayer();
+       
+
         TeamWinManager.instance.Team1Win.SetActive(true);
         TeamWinManager.instance.Team2Win.SetActive(true);
 
@@ -64,7 +77,7 @@ public class PauseMenu : MonoBehaviour
         // Dừng coroutine cũ và bắt đầu lại coroutine mới
         //GameManager.instance.ResetSwitchCycle();
 
-        //Time.timeScale = 1f;
+        Time.timeScale = 1f;
     }
 
     public void Resume()

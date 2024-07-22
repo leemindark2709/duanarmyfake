@@ -83,4 +83,11 @@ public class PickPlayer : MonoBehaviour
         }
 
     }
+    public void setnoneplayer()
+    {
+        foreach (Transform t in PlayerPicks)
+        {
+            t.GetComponent<Player>().player = null;
+        }
+    }
 }

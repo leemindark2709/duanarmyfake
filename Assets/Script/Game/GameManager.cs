@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Queue<Transform> queueTable = new Queue<Transform>();
     public List<Transform> teamEven = new List<Transform>();
     public List<Transform> teamOdd = new List<Transform>();
-    private Coroutine switchCoroutine;
+   [SerializeField] private Coroutine switchCoroutine;
     private float defaultSwitchDelay = 10f;
     private float switchDelay = 10f;
     public bool playersCreated = false; // Biến cờ để theo dõi việc tạo player
@@ -56,9 +56,6 @@ public class GameManager : MonoBehaviour
     {
         if (!playersCreated && playerCount == pickPlayer.ListPlayerInGames.Count && playerCount > 0)
         {
-          
-
-
             if (!delayStarted)
             {
                 if (!playersCreated)
@@ -71,7 +68,7 @@ public class GameManager : MonoBehaviour
             }
             if (Time.time >= delayStartTime + 3f)
             {
-                GetPointToSpaw(); // Lấy điểm spawn cho players
+                GetPointToSpaw(); 
 
                 for (int i = 0; i < playerCount; i++)
                 {
@@ -84,7 +81,6 @@ public class GameManager : MonoBehaviour
                         AddPlayerTableToQueue(playerTable);
                        playerTable.gameObject.SetActive(true);
                         player.GetComponent<DamageReceiver>().playertable = playerTable;
-
                         if (player != null)
                         {
                             turnOffComponent(player);
@@ -96,12 +92,13 @@ public class GameManager : MonoBehaviour
                             if (i % 2 == 0)
                             {
                                 teamEven.Add(player);
-                                player.Find("Status").Find("Canvas").Find("teamolder").gameObject.SetActive(true);
+                                player.Find("Status").Find("Canvas").Find("teameven").gameObject.SetActive(true);
+                                
                             }
                             else
                             {
                                 teamOdd.Add(player);
-                                player.Find("Status").Find("Canvas").Find("teameven").gameObject.SetActive(true);
+                                player.Find("Status").Find("Canvas").Find("teamolder").gameObject.SetActive(true);
                             }
                         }
                     }
@@ -135,13 +132,11 @@ public class GameManager : MonoBehaviour
     // Hàm để chuyển đổi ActivePlayer và bật/tắt các component
     void SwitchActivePlayer()
     {
-        if (queuePlayer.Count == 0)
+        if (queuePlayer.Count <= 1)
             return;
-
         Transform previousPlayer = queuePlayer.Dequeue();
         turnOffComponent(previousPlayer);
         previousPlayer.Find("Status").Find("arrow").gameObject.SetActive(false);
-
         StartCoroutine(DelayedSetActivePlayer(previousPlayer));
     }
 
@@ -151,11 +146,16 @@ public class GameManager : MonoBehaviour
 
         queuePlayer.Enqueue(player);
         ActivePlayer = queuePlayer.Peek();
-        turnOnComponent(ActivePlayer);
-        ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
+        if (ActivePlayer!=null)
+        {
+            turnOnComponent(ActivePlayer);
+            ActivePlayer.Find("Status").Find("arrow").gameObject.SetActive(true);
 
-        switchDelay = defaultSwitchDelay;
-        ResetSwitchCycle();
+            switchDelay = defaultSwitchDelay;
+            ResetSwitchCycle();
+
+        }
+       
     }
 
     protected virtual Transform SpawnPlayer(string name, Transform point)
@@ -223,6 +223,7 @@ public class GameManager : MonoBehaviour
 
     public void RemovePlayer(Transform player)
     {
+        player.GetComponent<DamageReceiver>().playertable.Find("panel").gameObject.SetActive(false);
         players.Remove(player);
 
         Queue<Transform> newQueue = new Queue<Transform>();
@@ -246,19 +247,6 @@ public class GameManager : MonoBehaviour
             teamOdd.Remove(player);
             Debug.Log(GetRemainingTeam());
         }
-
-        //if (ActivePlayer == player)
-        //{
-        //    if (queuePlayer.Count > 0)
-        //    {
-        //        ActivePlayer = queuePlayer.Peek();
-        //        turnOnComponent(ActivePlayer);
-        //    }
-        //    else
-        //    {
-        //        ActivePlayer = null;
-        //    }
-        //}
     }
 
     public string GetPlayerTeam(Transform player)
@@ -285,19 +273,19 @@ public class GameManager : MonoBehaviour
     private IEnumerator SwitchActivePlayerCycle()
     {
         Debug.Log("ok" + queuePlayer.Count);
-        while (true)
+        while (queuePlayer.Count>1)
         {
             yield return new WaitForSeconds(switchDelay);
             if (IsAnyQueueEmpty())
             {
                 StopCoroutine(switchCoroutine);
-                if (ActivePlayer != null)
-                {
+                
                     turnOffComponent(ActivePlayer);
-                }
+                
                 yield break;
             }
             audioManger.PlaySFX(audioManger.NextTurn);
+
             SwitchActivePlayer();
         }
     }
@@ -331,9 +319,11 @@ public class GameManager : MonoBehaviour
         teamEven.Clear();
         teamOdd.Clear();
         points.Clear();
-        //ActivePlayer = null;
+        ActivePlayer = null;
         playersCreated = false;
         playerCount = 0;
+        enableTime = 0;
+        ResetSwitchCycle(); 
     }
 
     public IEnumerator SwitchActivePlayerAfterSeconds(float seconds)
@@ -345,7 +335,11 @@ public class GameManager : MonoBehaviour
     public void OnBulletSpawned()
     {
         switchDelay = 2f;
-        ResetSwitchCycle();
+        if (queuePlayer.Count>0)
+        {
+            ResetSwitchCycle();
+        }
+       
     }
 
     public string GetRemainingTeam()
