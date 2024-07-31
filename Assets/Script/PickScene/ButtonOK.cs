@@ -103,10 +103,19 @@ public class ButtonOK : MonoBehaviour
        
         
     }
-   
+
 
     private IEnumerator ShowReadyGoSequence()
     {
+        // Tìm tất cả các đối tượng có tên "pause"
+        GameObject[] pauseObjects = GameObject.FindGameObjectsWithTag("Pause");
+
+        // Tắt tất cả các đối tượng "pause"
+        foreach (GameObject pauseObject in pauseObjects)
+        {
+            pauseObject.SetActive(false);
+        }
+
         if (pickScene != null)
         {
             setfalsePickScene();
@@ -114,27 +123,33 @@ public class ButtonOK : MonoBehaviour
 
         if (ReadyUI != null && GoUI != null)
         {
-            // Show ReadyUI for 1 second
+            // Hiển thị ReadyUI trong 1 giây
             ReadyUI.SetActive(true);
             audioManager.PlaySFX(audioManager.Ready);
             yield return new WaitForSeconds(1f);
             ReadyUI.SetActive(false);
 
-            // Show GoUI for 2 seconds
+            // Hiển thị GoUI trong 2 giây
             GoUI.SetActive(true);
             audioManager.PlaySFX(audioManager.Go);
             yield return new WaitForSeconds(2f);
-           
             GoUI.SetActive(false);
         }
         else
         {
-            Debug.LogError("ReadyUI or GoUI is not assigned properly!");
+            Debug.LogError("ReadyUI hoặc GoUI không được gán đúng!");
         }
+
         SetTruePickScene();
         pickScene.SetActive(false);
 
+        // Bật lại tất cả các đối tượng "pause"
+        foreach (GameObject pauseObject in pauseObjects)
+        {
+            pauseObject.SetActive(true);
+        }
     }
+
 
     protected virtual void setfalsePickScene()
     {

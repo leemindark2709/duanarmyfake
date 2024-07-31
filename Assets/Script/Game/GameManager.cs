@@ -285,8 +285,11 @@ public class GameManager : MonoBehaviour
                 yield break;
             }
             audioManger.PlaySFX(audioManger.NextTurn);
-
-            SwitchActivePlayer();
+            if (queuePlayer.Count>1)
+            {
+                SwitchActivePlayer();
+            }
+           
         }
     }
 

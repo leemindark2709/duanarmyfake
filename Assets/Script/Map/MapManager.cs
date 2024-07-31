@@ -103,11 +103,10 @@ public class MapManager : MonoBehaviour
             return;
         }
 
-        // Spawn the random map at position (0, 0, 0)
         Vector3 spawnPosition = Vector3.zero;
         Transform newMap = SpawnMap(randomMapPrefab.name, spawnPosition);
 
-        // Activate the new map
+
         if (newMap != null)
         {
             newMap.gameObject.SetActive(true);
